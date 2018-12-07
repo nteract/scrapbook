@@ -1,0 +1,27 @@
+recursive-include papermill *.py
+recursive-include papermill *.ipynb
+recursive-include papermill *.json
+recursive-include papermill *.yaml
+recursive-include papermill *.keep
+recursive-include papermill *.txt
+
+include setup.py
+include setup.cfg
+include requirements.txt
+include requirements-dev.txt
+include pytest.ini
+include LICENSE
+include MANIFEST.in
+include *.md
+include *.toml
+
+include .coveragerc
+
+# Documentation
+graft docs
+# exclude build files
+prune docs/_build
+# exclude sample notebooks for binder
+prune binder/
+# Scripts
+graft scripts
