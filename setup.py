@@ -1,18 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""""
-setup.py
-
-Note: Do a version check for IPython.
-    IPython v6+ no longer supports Python 2.
-    If Python 2, intall ipython 5.x.
-
-See:
-https://packaging.python.org/tutorials/packaging-projects/
-https://packaging.python.org/en/latest/distributing.html
-https://github.com/pypa/sampleproject
-
-"""
 from __future__ import print_function
 import os
 import sys
@@ -25,14 +12,26 @@ from setuptools import setup
 # Python 3 only projects can skip this import
 from io import open
 
-import versioneer
-
 python_2 = sys.version_info[0] == 2
 
 
 def read(fname):
     with open(fname, 'rU' if python_2 else 'r') as fhandle:
         return fhandle.read()
+
+
+local_path = os.path.dirname(__file__)
+# Fix for tox which manipulates execution pathing
+if not local_path:
+    local_path = '.'
+
+
+def version():
+    with open(local_path + '/scrapbook/version.py', 'r') as ver:
+        for line in ver.readlines():
+            if line.startswith('version ='):
+                return line.split(' = ')[-1].strip()[1:-1]
+    raise ValueError('No version found in scrapbook/version.py')
 
 
 req_path = os.path.join(os.path.dirname('__file__'), 'requirements.txt')
@@ -76,8 +75,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='scrapbook',
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
+    version=version(),
     description='A library for recording and reading data in Jupyter and nteract Notebooks',
     author='nteract contributors',
     author_email='nteract@googlegroups.com',
