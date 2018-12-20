@@ -84,8 +84,8 @@ html_theme_options = {
     'github_button': True,
     'github_user': 'nteract',
     'github_repo': 'scrapbook',
-    'travis_button': True,
-    'codecov_button': True,
+    'travis_button': False,
+    'codecov_button': False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
