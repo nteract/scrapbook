@@ -50,8 +50,8 @@ or
 virtualenv/) if you prefer. 
 
 ```bash
-python3 -m virtualenv dev source
-dev/bin/activate
+python3 -m virtualenv dev
+source dev/bin/activate
 ```
 
 Install Scrapbook using:
