@@ -1,5 +1,7 @@
 # scrapbook
 
+[![Documentation Status](https://readthedocs.org/projects/nteract-scrapbook/badge/?version=latest)](https://nteract-scrapbook.readthedocs.io/en/latest/?badge=latest)
+
 A library for recording a notebook's data values and reading these recorded data
 values at a later time.
 
@@ -66,3 +68,9 @@ nb.dataframe
   components from elsewhere. nteract??
 - Think a little more about secondary language support (R is nice, but we'd want
   support in many languages for the most common transports.)
+
+## Documentation
+
+[Documentation on ReadTheDocs](https://nteract-scrapbook.readthedocs.io/en/latest/)
+
+[API and module reference](https://nteract-scrapbook.readthedocs.io/en/latest/reference/modules.html)
