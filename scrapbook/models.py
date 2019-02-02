@@ -12,6 +12,7 @@ import pandas as pd
 
 from six import string_types
 from IPython.display import display as ip_display, Markdown
+
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import load_notebook_node
 
@@ -19,11 +20,11 @@ from .translators import registry as translator_registry
 from .exceptions import ScrapbookException
 
 
-GLUE_OUTPUT_PREFIX = 'application/scrapbook.scrap+'
-RECORD_OUTPUT_PREFIX = 'application/papermill.record+'
+GLUE_OUTPUT_PREFIX = "application/scrapbook.scrap+"
+RECORD_OUTPUT_PREFIX = "application/papermill.record+"
 DATA_OUTPUT_PREFIXES = [
     GLUE_OUTPUT_PREFIX,
-    RECORD_OUTPUT_PREFIX # Backwards compatibility
+    RECORD_OUTPUT_PREFIX,  # Backwards compatibility
 ]
 
 
@@ -49,11 +50,14 @@ class Notebook(object):
         if isinstance(node_or_path, string_types):
             if not node_or_path.endswith(".ipynb"):
                 raise ValueError(
-                    "Requires an '.ipynb' file extension. Provided path: '{}'".format(node_or_path))
+                    "Requires an '.ipynb' file extension. Provided path: '{}'".format(
+                        node_or_path
+                    )
+                )
             self.path = node_or_path
             self.node = load_notebook_node(node_or_path)
         else:
-            self.path = ''
+            self.path = ""
             self.node = node_or_path
         self.translators = translators or translator_registry
 
@@ -74,18 +78,20 @@ class Notebook(object):
     @property
     def parameters(self):
         """dict: parameters stored in the notebook metadata"""
-        return self.node.metadata.get('papermill', {}).get('parameters', {})
+        return self.node.metadata.get("papermill", {}).get("parameters", {})
 
     def _fetch_scraps(self):
         """Returns a dictionary of the data recorded in a notebook."""
         scraps = collections.OrderedDict()
         for cell in self.node.cells:
-            for output in cell.get('outputs', []):
-                for sig, payload in output.get('data', {}).items():
+            for output in cell.get("outputs", []):
+                for sig, payload in output.get("data", {}).items():
                     for prefix in DATA_OUTPUT_PREFIXES:
                         if sig.startswith(prefix):
                             data_type = sig.split(prefix, 1)[1]
-                            scraps.update(self.translators.load_data(data_type, payload))
+                            scraps.update(
+                                self.translators.load_data(data_type, payload)
+                            )
         return scraps
 
     @property
@@ -100,29 +106,28 @@ class Notebook(object):
         """list: a list of cell execution timings in cell order"""
         return [
             # TODO: Other timing conventions?
-            cell.metadata.get('papermill', {}).get('duration', 0.0)
-            if cell.get("execution_count") else None
+            cell.metadata.get("papermill", {}).get("duration", 0.0)
+            if cell.get("execution_count")
+            else None
             for cell in self.node.cells
         ]
 
     @property
     def execution_counts(self):
         """list: a list of cell execution counts in cell order"""
-        return [
-            cell.get("execution_count") for cell in self.node.cells
-        ]
+        return [cell.get("execution_count") for cell in self.node.cells]
 
     @property
     def papermill_metrics(self):
         """pandas dataframe: dataframe of cell execution counts and times"""
-        df = pd.DataFrame(columns=['filename', 'cell', 'value', 'type'])
+        df = pd.DataFrame(columns=["filename", "cell", "value", "type"])
 
         for i, cell in enumerate(self.node.cells):
             execution_count = cell.get("execution_count")
             if not execution_count:
                 continue
             name = "Out [{}]".format(str(execution_count))
-            value = cell.metadata.get('papermill', {}).get('duration', 0.0)
+            value = cell.metadata.get("papermill", {}).get("duration", 0.0)
             df.loc[i] = self.filename, name, value, "time (s)"
         return df
 
@@ -131,18 +136,24 @@ class Notebook(object):
         """pandas dataframe: dataframe of notebook parameters"""
         # Meant for backwards compatibility to papermill's dataframe method
         return pd.DataFrame(
-            [[name, self.parameters[name], 'parameter', self.filename]
-                for name in sorted(self.parameters.keys())],
-            columns=['name', 'value', 'type', 'filename'])
+            [
+                [name, self.parameters[name], "parameter", self.filename]
+                for name in sorted(self.parameters.keys())
+            ],
+            columns=["name", "value", "type", "filename"],
+        )
 
     @property
     def scrap_dataframe(self):
         """pandas dataframe: dataframe of cell scraps"""
         # Meant for backwards compatibility to papermill's dataframe method
         return pd.DataFrame(
-            [[name, self.scraps[name], 'record', self.filename]
-                for name in sorted(self.scraps.keys())],
-            columns=['name', 'value', 'type', 'filename'])
+            [
+                [name, self.scraps[name], "record", self.filename]
+                for name in sorted(self.scraps.keys())
+            ],
+            columns=["name", "value", "type", "filename"],
+        )
 
     @property
     def papermill_dataframe(self):
@@ -153,14 +164,14 @@ class Notebook(object):
     def _fetch_highlights(self):
         outputs = collections.OrderedDict()
         for cell in self.node.cells:
-            for output in cell.get('outputs', []):
-                if 'scrapbook' in output.get('metadata', {}):
-                    output_name = output.metadata.scrapbook.get('name')
+            for output in cell.get("outputs", []):
+                if "scrapbook" in output.get("metadata", {}):
+                    output_name = output.metadata.scrapbook.get("name")
                     if output_name:
                         outputs[output_name] = output
                 # Backwards compatibility
-                if 'papermill' in output.get('metadata', {}):
-                    output_name = output.metadata.papermill.get('name')
+                if "papermill" in output.get("metadata", {}):
+                    output_name = output.metadata.papermill.get("name")
                     if output_name:
                         outputs[output_name] = output
         return outputs
@@ -186,7 +197,9 @@ class Notebook(object):
         """
         if name not in self.highlights:
             if raise_error:
-                raise ScrapbookException("Frame '{}' is not available in this notebook.".format(name))
+                raise ScrapbookException(
+                    "Frame '{}' is not available in this notebook.".format(name)
+                )
             else:
                 ip_display("No highlight available for {}".format(name))
         else:
@@ -230,7 +243,7 @@ class Scrapbook(collections.MutableMapping):
         for key in sorted(self._notebooks):
             nb = self._notebooks[key]
             df = nb.papermill_dataframe
-            df['key'] = key
+            df["key"] = key
             df_list.append(df)
         return pd.concat(df_list).reset_index(drop=True)
 
@@ -241,16 +254,17 @@ class Scrapbook(collections.MutableMapping):
         for key in sorted(self._notebooks):
             nb = self._notebooks[key]
             df = nb.papermill_metrics
-            df['key'] = key
+            df["key"] = key
             df_list.append(df)
         return pd.concat(df_list).reset_index(drop=True)
 
     @property
     def sorted_notebooks(self):
         """list: sorted list of associated notebooks."""
-        return map(operator.itemgetter(1),
-                   sorted(self._notebooks.items(),
-                          key=operator.itemgetter(0)))
+        return map(
+            operator.itemgetter(1),
+            sorted(self._notebooks.items(), key=operator.itemgetter(0)),
+        )
 
     @property
     def scraps(self):

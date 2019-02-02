@@ -20,7 +20,9 @@ class DataTranslatorRegistry(collections.MutableMapping):
 
     def __setitem__(self, key, value):
         if not (getattr(value, "translate", None) and callable(value.translate)):
-            raise ScrapbookException("Can't register object without 'translate' method.")
+            raise ScrapbookException(
+                "Can't register object without 'translate' method."
+            )
         if not (getattr(value, "load", None) and callable(value.translate)):
             raise ScrapbookException("Can't register object without 'load' method.")
         return self._translators.__setitem__(key, value)
@@ -79,7 +81,9 @@ class DataTranslatorRegistry(collections.MutableMapping):
         """
         loader = self._translators.get(storage_type)
         if not loader:
-            raise ScrapbookException('No translator found for "{}" data type!'.format(storage_type))
+            raise ScrapbookException(
+                'No translator found for "{}" data type!'.format(storage_type)
+            )
         return loader.load(scrap)
 
     def translate_data(self, storage_type, scrap):
@@ -96,7 +100,9 @@ class DataTranslatorRegistry(collections.MutableMapping):
         """
         translator = self._translators.get(storage_type)
         if not translator:
-            raise ScrapbookException('No translator found for "{}" data type!'.format(storage_type))
+            raise ScrapbookException(
+                'No translator found for "{}" data type!'.format(storage_type)
+            )
         return translator.translate(scrap)
 
 
@@ -135,6 +141,6 @@ class ArrowDataframeTranslator(object):
 
 
 registry = DataTranslatorRegistry()
-registry.register('unicode', UnicodeTranslator())
-registry.register('json', JsonTranslator())
+registry.register("unicode", UnicodeTranslator())
+registry.register("json", JsonTranslator())
 # registry.register('arrow', ArrowDataframeTranslator())

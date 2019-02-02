@@ -23,26 +23,26 @@ except NameError:
 
 @pytest.fixture
 def notebook_result():
-    path = get_notebook_path('collection/result1.ipynb')
+    path = get_notebook_path("collection/result1.ipynb")
     return read_notebook(path)
 
 
 def test_bad_path():
     with pytest.raises(FileNotFoundError):
-        Notebook('not/a/valid/path.ipynb')
+        Notebook("not/a/valid/path.ipynb")
 
 
 def test_bad_ext():
     with pytest.raises(ValueError):
-        Notebook('not/a/valid/extension.py')
+        Notebook("not/a/valid/extension.py")
 
 
 def test_filename(notebook_result):
-    assert notebook_result.filename == 'result1.ipynb'
+    assert notebook_result.filename == "result1.ipynb"
 
 
 def test_directory(notebook_result):
-    assert notebook_result.directory == get_notebook_dir('collection/result1.ipynb')
+    assert notebook_result.directory == get_notebook_dir("collection/result1.ipynb")
 
 
 def test_parameters(notebook_result):
@@ -51,52 +51,53 @@ def test_parameters(notebook_result):
 
 def test_scraps(notebook_result):
     assert notebook_result.scraps == {
-        'dict': {u'a': 1, u'b': 2},
-        'list': [1, 2, 3],
-        'number': 1,
-        'one': 1
+        "dict": {u"a": 1, u"b": 2},
+        "list": [1, 2, 3],
+        "number": 1,
+        "one": 1,
     }
 
 
 def test_highlights(notebook_result):
     assert notebook_result.highlights == {
-        'output': {
-            'data': {'text/plain': "'Hello World!'"},
-            'metadata': {'papermill': {'name': 'output'}},
-            'output_type': 'display_data'
+        "output": {
+            "data": {"text/plain": "'Hello World!'"},
+            "metadata": {"papermill": {"name": "output"}},
+            "output_type": "display_data",
         },
-        'one_only': {
-            'data': {'text/plain': "'Just here!'"},
-            'metadata': {'scrapbook': {'name': 'one_only'}},
-            'output_type': 'display_data'
-        }
+        "one_only": {
+            "data": {"text/plain": "'Just here!'"},
+            "metadata": {"scrapbook": {"name": "one_only"}},
+            "output_type": "display_data",
+        },
     }
 
 
-@mock.patch('scrapbook.models.ip_display')
+@mock.patch("scrapbook.models.ip_display")
 def test_copy_highlight(mock_display, notebook_result):
-    notebook_result.copy_highlight('output')
+    notebook_result.copy_highlight("output")
     mock_display.assert_called_once_with(
-        {'text/plain': "'Hello World!'"},
+        {"text/plain": "'Hello World!'"},
         # We don't re-translate the metadata from older messages
-        metadata={'papermill': {'name': 'output'}},
-        raw=True)
+        metadata={"papermill": {"name": "output"}},
+        raw=True,
+    )
 
 
 def test_missing_copy_highlight(notebook_result):
     with pytest.raises(ScrapbookException):
-        notebook_result.copy_highlight('foo')
+        notebook_result.copy_highlight("foo")
 
 
-@mock.patch('scrapbook.models.ip_display')
+@mock.patch("scrapbook.models.ip_display")
 def test_missing_copy_highlight_no_error(mock_display, notebook_result):
-    notebook_result.copy_highlight('foo', raise_error=False)
-    mock_display.assert_called_once_with('No highlight available for foo')
+    notebook_result.copy_highlight("foo", raise_error=False)
+    mock_display.assert_called_once_with("No highlight available for foo")
 
 
 @pytest.fixture
 def no_exec_result():
-    path = get_notebook_path('result_no_exec.ipynb')
+    path = get_notebook_path("result_no_exec.ipynb")
     return read_notebook(path)
 
 
@@ -119,33 +120,30 @@ def test_malformed_execution_counts(no_exec_result):
 def test_papermill_metrics(notebook_result):
     expected_df = pd.DataFrame(
         [
-            ('result1.ipynb', 'Out [1]', 0.000, 'time (s)'),
-            ('result1.ipynb', 'Out [2]', 0.123, 'time (s)'),
+            ("result1.ipynb", "Out [1]", 0.000, "time (s)"),
+            ("result1.ipynb", "Out [2]", 0.123, "time (s)"),
         ],
-        columns=['filename', 'cell', 'value', 'type'],
+        columns=["filename", "cell", "value", "type"],
     )
     assert_frame_equal(notebook_result.papermill_metrics, expected_df)
 
 
 def test_malformed_execution_metrics(no_exec_result):
-    expected_df = pd.DataFrame(
-        [],
-        columns=['filename', 'cell', 'value', 'type'],
-    )
+    expected_df = pd.DataFrame([], columns=["filename", "cell", "value", "type"])
     assert_frame_equal(no_exec_result.papermill_metrics, expected_df)
 
 
 def test_papermill_dataframe(notebook_result):
     expected_df = pd.DataFrame(
         [
-            ('bar', 'hello', 'parameter', 'result1.ipynb'),
-            ('foo', 1, 'parameter', 'result1.ipynb'),
-            ('dict', {u'a': 1, u'b': 2}, 'record', 'result1.ipynb'),
-            ('list', [1, 2, 3], 'record', 'result1.ipynb'),
-            ('number', 1, 'record', 'result1.ipynb'),
-            ('one', 1, 'record', 'result1.ipynb'),
+            ("bar", "hello", "parameter", "result1.ipynb"),
+            ("foo", 1, "parameter", "result1.ipynb"),
+            ("dict", {u"a": 1, u"b": 2}, "record", "result1.ipynb"),
+            ("list", [1, 2, 3], "record", "result1.ipynb"),
+            ("number", 1, "record", "result1.ipynb"),
+            ("one", 1, "record", "result1.ipynb"),
         ],
-        columns=['name', 'value', 'type', 'filename'],
+        columns=["name", "value", "type", "filename"],
     )
     assert_frame_equal(notebook_result.papermill_dataframe, expected_df)
 
@@ -157,28 +155,28 @@ def test_no_cells():
 
 
 def test_no_outputs():
-    nb = Notebook(new_notebook(cells=[new_code_cell('test', outputs=[])]))
+    nb = Notebook(new_notebook(cells=[new_code_cell("test", outputs=[])]))
     assert nb.scraps == collections.OrderedDict()
     assert nb.highlights == collections.OrderedDict()
 
 
 def test_empty_metadata():
-    output = new_output(output_type='display_data', data={}, metadata={})
-    raw_nb = new_notebook(cells=[new_code_cell('test', outputs=[output])])
+    output = new_output(output_type="display_data", data={}, metadata={})
+    raw_nb = new_notebook(cells=[new_code_cell("test", outputs=[output])])
     nb = Notebook(raw_nb)
     assert nb.scraps == collections.OrderedDict()
     assert nb.highlights == collections.OrderedDict()
 
 
 def test_metadata_but_empty_content():
-    output = new_output(output_type='display_data', metadata={'scrapbook': {}})
-    raw_nb = new_notebook(cells=[new_code_cell('test', outputs=[output])])
+    output = new_output(output_type="display_data", metadata={"scrapbook": {}})
+    raw_nb = new_notebook(cells=[new_code_cell("test", outputs=[output])])
     nb = Notebook(raw_nb)
     assert nb.scraps == collections.OrderedDict()
     assert nb.highlights == collections.OrderedDict()
 
 
 def test_markdown():
-    nb = Notebook(new_notebook(cells=[new_markdown_cell('this is a test.')]))
+    nb = Notebook(new_notebook(cells=[new_markdown_cell("this is a test.")]))
     assert nb.scraps == collections.OrderedDict()
     assert nb.highlights == collections.OrderedDict()

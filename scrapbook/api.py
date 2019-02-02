@@ -11,6 +11,7 @@ import IPython
 
 from six import string_types
 from IPython.display import display as ip_display
+
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
 
@@ -58,16 +59,15 @@ def glue(name, scrap, storage=None):
     # ...
     if not storage:
         if isinstance(scrap, string_types):
-            storage = 'unicode'
+            storage = "unicode"
         elif isinstance(scrap, (list, dict)):
-            storage = 'json'
+            storage = "json"
         else:
             # This may be more complex in the future
-            storage = 'json'
+            storage = "json"
     data = {
-        GLUE_OUTPUT_PREFIX + storage: {
-            name: translator_registry.translate_data(storage, scrap)
-        }
+        GLUE_OUTPUT_PREFIX
+        + storage: {name: translator_registry.translate_data(storage, scrap)}
     }
 
     # IPython.display.display takes a tuple of objects as first parameter
@@ -88,7 +88,7 @@ def highlight(name, obj):
 
     """
     data, metadata = IPython.core.formatters.format_display_data(obj)
-    metadata['scrapbook'] = dict(name=name)
+    metadata["scrapbook"] = dict(name=name)
     ip_display(data, metadata=metadata, raw=True)
 
 
