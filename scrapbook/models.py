@@ -23,8 +23,7 @@ GLUE_OUTPUT_PREFIX = 'application/scrapbook.scrap+'
 RECORD_OUTPUT_PREFIX = 'application/papermill.record+'
 DATA_OUTPUT_PREFIXES = [
     GLUE_OUTPUT_PREFIX,
-    # Backwards compatibility
-    RECORD_OUTPUT_PREFIX
+    RECORD_OUTPUT_PREFIX # Backwards compatibility
 ]
 
 
@@ -69,7 +68,7 @@ class Notebook(object):
 
     @property
     def directory(self):
-        """str: directory name at the specified path"""
+        """str: directory name found for a notebook (nb)"""
         return os.path.dirname(self.path)
 
     @property
@@ -197,7 +196,7 @@ class Notebook(object):
 
 class Scrapbook(collections.MutableMapping):
     """
-    Represents a collection of notebooks as a dictionary of notebooks.
+    A collection of notebooks represented as a dictionary of notebooks
     """
 
     def __init__(self):
@@ -224,7 +223,9 @@ class Scrapbook(collections.MutableMapping):
     @property
     def papermill_dataframe(self):
         """list: a list of dataframes from a collection of notebooks"""
+
         # Backwards compatible dataframe interface
+
         df_list = []
         for key in sorted(self._notebooks):
             nb = self._notebooks[key]
@@ -246,7 +247,7 @@ class Scrapbook(collections.MutableMapping):
 
     @property
     def sorted_notebooks(self):
-        """list: a list of the notebooks in key order."""
+        """list: sorted list of associated notebooks."""
         return map(operator.itemgetter(1),
                    sorted(self._notebooks.items(),
                           key=operator.itemgetter(0)))

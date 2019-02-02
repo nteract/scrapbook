@@ -35,23 +35,14 @@ cd scrapbook
 ```
 
 ### Install an Editable Version
-
-We prefer to use [conda](https://conda.io/docs
-/user-guide/tasks/manage-environments.html) to manage the development
-environment. 
-
+We prefer to use [conda](https://conda.io/docs/user-guide/tasks/manage-environments.html) to manage the development environment.
 ```bash
-conda create -n dev . 
-activate env
-``` 
-
-or
-[virtualenv](https://packaging.python.org/guides/installing-using-pip-and-
-virtualenv/) if you prefer. 
-
+conda create -n dev
+. activate env
+```
+or use native venv capabilities if you prefer.
 ```bash
-python3 -m virtualenv dev
-source dev/bin/activate
+python3 -m venv dev
 ```
 
 Install Scrapbook using:
@@ -66,6 +57,19 @@ _Note: When you are finished you can use `source deactivate` to go back to your 
 
 We need to install the development package before we can run the tests. If anything is confusing below, always resort to the relevant documentation.
 
+For the most basic test runs against python 3.6 use this tox subset (callable after `pip install tox`):
+```bash
+tox -e py36
+```
+This will just execute the unittests against python 3.6 in a new virtual env. The first run will take longer to setup the virtualenv, but will be fast after that point.
+
+For a full test suite of all envs and linting checks simply run tox without any arguments
+```bash
+tox
+```
+This will require python2.7, python3.5, python3.6, and python3.7 to be installed. **Note** that python 3.7 has problems with the alpha build which is the available package version on many linux distros. Local build failures with 3.7 can happen as a result (you'll see a seg fault or exist code -11).
+
+Alternavitely pytest can be used if you have an environment already setup which works or has custom packages not present in the tox build.
 ```bash
 pytest --pyargs scrapbook
 ```
@@ -86,20 +90,6 @@ The general workflow for this will be:
 1. Run local tests
 2. Pushed changes to your forked repository
 3. Open pull request to main repository
-
-### Run Tests Locally
-
-```bash
-pytest --pyargs scrapbook
-```
-
-Run check manifest to ensure all files are accounted for in the repository.
-
-```bash check-manifest ``` 
-
-This commands read the `MANIFEST.in` file and explicitly specify the files to
-include in the source distribution. You can read more about how this works
-[here](https://docs.python.org/3/distutils/sourcedist.html).
 
 ### Push Changes to Forked Repo
 
