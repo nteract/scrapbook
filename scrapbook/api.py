@@ -75,7 +75,7 @@ def glue(name, scrap, storage=None):
     ip_display(data, raw=True)
 
 
-def frame(name, obj):
+def highlight(name, obj):
     """
     Display an object with the reference `name` in a retrievable manner.
 

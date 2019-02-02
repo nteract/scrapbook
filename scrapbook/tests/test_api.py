@@ -9,7 +9,7 @@ from IPython.display import Image
 
 from . import get_fixture_path
 from ..models import GLUE_OUTPUT_PREFIX
-from ..api import glue, frame
+from ..api import glue, highlight
 
 
 @pytest.mark.parametrize(
@@ -89,6 +89,6 @@ def test_glue(mock_display, name, scrap, storage, data):
     ],
 )
 @mock.patch('scrapbook.api.ip_display')
-def test_frame(mock_display, name, obj, data, metadata):
-    frame(name, obj)
+def test_highlight(mock_display, name, obj, data, metadata):
+    highlight(name, obj)
     mock_display.assert_called_once_with(data, metadata=metadata, raw=True)

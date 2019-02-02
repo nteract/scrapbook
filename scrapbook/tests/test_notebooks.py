@@ -58,8 +58,8 @@ def test_scraps(notebook_result):
     }
 
 
-def test_frames(notebook_result):
-    assert notebook_result.frames == {
+def test_highlights(notebook_result):
+    assert notebook_result.highlights == {
         'output': {
             'data': {'text/plain': "'Hello World!'"},
             'metadata': {'papermill': {'name': 'output'}},
@@ -74,8 +74,8 @@ def test_frames(notebook_result):
 
 
 @mock.patch('scrapbook.models.ip_display')
-def test_reframe(mock_display, notebook_result):
-    notebook_result.reframe('output')
+def test_copy_highlight(mock_display, notebook_result):
+    notebook_result.copy_highlight('output')
     mock_display.assert_called_once_with(
         {'text/plain': "'Hello World!'"},
         # We don't re-translate the metadata from older messages
@@ -83,15 +83,15 @@ def test_reframe(mock_display, notebook_result):
         raw=True)
 
 
-def test_missing_reframe(notebook_result):
+def test_missing_copy_highlight(notebook_result):
     with pytest.raises(ScrapbookException):
-        notebook_result.reframe('foo')
+        notebook_result.copy_highlight('foo')
 
 
 @mock.patch('scrapbook.models.ip_display')
-def test_missing_reframe_no_error(mock_display, notebook_result):
-    notebook_result.reframe('foo', raise_error=False)
-    mock_display.assert_called_once_with('No frame available for foo')
+def test_missing_copy_highlight_no_error(mock_display, notebook_result):
+    notebook_result.copy_highlight('foo', raise_error=False)
+    mock_display.assert_called_once_with('No highlight available for foo')
 
 
 @pytest.fixture
@@ -153,13 +153,13 @@ def test_papermill_dataframe(notebook_result):
 def test_no_cells():
     nb = Notebook(new_notebook(cells=[]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.frames == collections.OrderedDict()
+    assert nb.highlights == collections.OrderedDict()
 
 
 def test_no_outputs():
     nb = Notebook(new_notebook(cells=[new_code_cell('test', outputs=[])]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.frames == collections.OrderedDict()
+    assert nb.highlights == collections.OrderedDict()
 
 
 def test_empty_metadata():
@@ -167,7 +167,7 @@ def test_empty_metadata():
     raw_nb = new_notebook(cells=[new_code_cell('test', outputs=[output])])
     nb = Notebook(raw_nb)
     assert nb.scraps == collections.OrderedDict()
-    assert nb.frames == collections.OrderedDict()
+    assert nb.highlights == collections.OrderedDict()
 
 
 def test_metadata_but_empty_content():
@@ -175,10 +175,10 @@ def test_metadata_but_empty_content():
     raw_nb = new_notebook(cells=[new_code_cell('test', outputs=[output])])
     nb = Notebook(raw_nb)
     assert nb.scraps == collections.OrderedDict()
-    assert nb.frames == collections.OrderedDict()
+    assert nb.highlights == collections.OrderedDict()
 
 
 def test_markdown():
     nb = Notebook(new_notebook(cells=[new_markdown_cell('this is a test.')]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.frames == collections.OrderedDict()
+    assert nb.highlights == collections.OrderedDict()
