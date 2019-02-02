@@ -8,17 +8,20 @@ import pandas as pd
 from IPython.display import Markdown
 from pandas.util.testing import assert_frame_equal
 
-from . import get_notebook_path, get_notebook_dir
+from . import get_notebook_path
 from .. import read_notebooks
 from ..exceptions import ScrapbookException
+
 
 @pytest.fixture
 def notebook_collection():
     path = get_notebook_path('collection')
     return read_notebooks(path)
 
+
 def test_assign_from_path(notebook_collection):
     notebook_collection['result_no_exec.ipynb'] = get_notebook_path('result_no_exec.ipynb')
+
 
 def test_scraps(notebook_collection):
     assert notebook_collection.scraps == {
@@ -36,6 +39,7 @@ def test_scraps(notebook_collection):
         }
     }
 
+
 def test_combined_scraps(notebook_collection):
     assert notebook_collection.combined_scraps == {
         'dict': {u'a': 3, u'b': 4},
@@ -44,6 +48,7 @@ def test_combined_scraps(notebook_collection):
         'one': 1,
         'two': 2
     }
+
 
 def test_frames(notebook_collection):
     assert notebook_collection.frames == {
@@ -73,6 +78,7 @@ def test_frames(notebook_collection):
         },
     }
 
+
 def test_combined_frames(notebook_collection):
     assert notebook_collection.combined_frames == {
         'output': {
@@ -92,6 +98,7 @@ def test_combined_frames(notebook_collection):
         }
     }
 
+
 def test_papermill_metrics(notebook_collection):
     expected_df = pd.DataFrame(
         [
@@ -103,6 +110,7 @@ def test_papermill_metrics(notebook_collection):
         columns=['filename', 'cell', 'value', 'type', 'key'],
     )
     assert_frame_equal(notebook_collection.papermill_metrics, expected_df)
+
 
 def test_papermill_dataframe(notebook_collection):
     expected_df = pd.DataFrame(
@@ -124,12 +132,14 @@ def test_papermill_dataframe(notebook_collection):
     )
     assert_frame_equal(notebook_collection.papermill_dataframe, expected_df)
 
+
 class AnyMarkdownWith(Markdown):
     def __eq__(self, other):
         try:
             return self.data == other.data
         except AttributeError:
             return False
+
 
 @mock.patch('scrapbook.models.ip_display')
 def test_display(mock_display, notebook_collection):
@@ -138,61 +148,63 @@ def test_display(mock_display, notebook_collection):
         mock.call(AnyMarkdownWith("### result1")),
         mock.call(AnyMarkdownWith("#### output")),
         mock.call(
-            {'text/plain': "'Hello World!'"},
+            {u'text/plain': u"'Hello World!'"},
             # We don't re-translate the metadata from older messages
-            metadata={'papermill': {'name': 'output'}},
+            metadata={u'papermill': {u'name': u'output'}},
             raw=True
         ),
         mock.call(AnyMarkdownWith("#### one_only")),
         mock.call(
-            {'text/plain': "'Just here!'"},
-            metadata={'scrapbook': {'name': 'one_only'}},
+            {u'text/plain': u"'Just here!'"},
+            metadata={u'scrapbook': {u'name': u'one_only'}},
             raw=True
         ),
         mock.call(AnyMarkdownWith("<hr>")),
         mock.call(AnyMarkdownWith("### result2")),
         mock.call(AnyMarkdownWith("#### output")),
         mock.call(
-            {'text/plain': "'Hello World 2!'"},
+            {u'text/plain': u"'Hello World 2!'"},
             # We don't re-translate the metadata from older messages
-            metadata={'papermill': {'name': 'output'}},
+            metadata={u'papermill': {u'name': u'output'}},
             raw=True
         ),
         mock.call(AnyMarkdownWith("#### two_only")),
         mock.call(
-            {'text/plain': "'Just here!'"},
-            metadata={'scrapbook': {'name': 'two_only'}},
+            {u'text/plain': u"'Just here!'"},
+            metadata={u'scrapbook': {u'name': u'two_only'}},
             raw=True
         ),
     ])
+
 
 @mock.patch('scrapbook.models.ip_display')
 def test_display_no_header(mock_display, notebook_collection):
     notebook_collection.display(header=None)
     mock_display.assert_has_calls([
         mock.call(
-            {'text/plain': "'Hello World!'"},
+            {u'text/plain': u"'Hello World!'"},
             # We don't re-translate the metadata from older messages
-            metadata={'papermill': {'name': 'output'}},
+            metadata={u'papermill': {u'name': u'output'}},
             raw=True
         ),
         mock.call(
-            {'text/plain': "'Just here!'"},
+            {u'text/plain': u"'Just here!'"},
             metadata={'scrapbook': {'name': 'one_only'}},
             raw=True
         ),
         mock.call(
-            {'text/plain': "'Hello World 2!'"},
+            {u'text/plain': u"'Hello World 2!'"},
             # We don't re-translate the metadata from older messages
-            metadata={'papermill': {'name': 'output'}},
+            metadata={u'papermill': {u'name': u'output'}},
             raw=True
         ),
         mock.call(
-            {'text/plain': "'Just here!'"},
-            metadata={'scrapbook': {'name': 'two_only'}},
+            {u'text/plain': u"'Just here!'"},
+            metadata={u'scrapbook': {u'name': u'two_only'}},
             raw=True
         ),
     ])
+
 
 @pytest.mark.parametrize(
     "keys",
@@ -222,6 +234,7 @@ def test_display_specific_notebook(mock_display, keys, notebook_collection):
             ),
         ])
 
+
 @pytest.mark.parametrize(
     "frames",
     [
@@ -241,6 +254,7 @@ def test_display_specific_frame(mock_display, frames, notebook_collection):
             ),
         ])
 
+
 @mock.patch('scrapbook.models.ip_display')
 def test_display_frame_key_mismatches(mock_display, notebook_collection):
     notebook_collection.display(frames='one_only')
@@ -258,7 +272,7 @@ def test_display_frame_key_mismatches(mock_display, notebook_collection):
         mock.call('No frame available for one_only'),
     ])
 
+
 def test_display_missing_frame_error(notebook_collection):
     with pytest.raises(ScrapbookException):
         notebook_collection.display(frames='one_only', raise_error=True)
-

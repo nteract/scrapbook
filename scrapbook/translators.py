@@ -10,6 +10,7 @@ import collections
 
 from .exceptions import ScrapbookException
 
+
 class DataTranslatorRegistry(collections.MutableMapping):
     def __init__(self):
         self._translators = {}
@@ -18,11 +19,9 @@ class DataTranslatorRegistry(collections.MutableMapping):
         return self._translators.__getitem__(key)
 
     def __setitem__(self, key, value):
-        if not (getattr(value, "translate", None) and
-                callable(value.translate)):
+        if not (getattr(value, "translate", None) and callable(value.translate)):
             raise ScrapbookException("Can't register object without 'translate' method.")
-        if not (getattr(value, "load", None) and
-                callable(value.translate)):
+        if not (getattr(value, "load", None) and callable(value.translate)):
             raise ScrapbookException("Can't register object without 'load' method.")
         return self._translators.__setitem__(key, value)
 
@@ -80,7 +79,7 @@ class DataTranslatorRegistry(collections.MutableMapping):
         """
         loader = self._translators.get(storage_type)
         if not loader:
-            raise ScrapbookException('No translator found for "{}" data type!'.format(data_type))
+            raise ScrapbookException('No translator found for "{}" data type!'.format(storage_type))
         return loader.load(scrap)
 
     def translate_data(self, storage_type, scrap):
@@ -97,8 +96,9 @@ class DataTranslatorRegistry(collections.MutableMapping):
         """
         translator = self._translators.get(storage_type)
         if not translator:
-            raise ScrapbookException('No translator found for "{}" data type!'.format(data_type))
+            raise ScrapbookException('No translator found for "{}" data type!'.format(storage_type))
         return translator.translate(scrap)
+
 
 class JsonTranslator(object):
     def translate(self, scrap):
@@ -112,6 +112,7 @@ class JsonTranslator(object):
             return json.loads(scrap)
         return scrap
 
+
 class UnicodeTranslator(object):
     def translate(self, scrap):
         if not isinstance(scrap, six.string_types):
@@ -124,12 +125,14 @@ class UnicodeTranslator(object):
             return str(scrap)
         return scrap
 
+
 class ArrowDataframeTranslator(object):
     def translate(self, scrap):
-        pass # TODO: Implement
+        pass  # TODO: Implement
 
     def load(self, scrap):
-        pass # TODO: Implement
+        pass  # TODO: Implement
+
 
 registry = DataTranslatorRegistry()
 registry.register('unicode', UnicodeTranslator())

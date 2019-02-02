@@ -7,7 +7,6 @@ Provides the Notebook wrapper objects for scrapbook
 from __future__ import unicode_literals
 import os
 import operator
-import itertools
 import collections
 import pandas as pd
 
@@ -32,7 +31,6 @@ DATA_OUTPUT_PREFIXES = [
 def merge_dicts(dicts):
     iterdicts = iter(dicts)
     outcome = next(iterdicts).copy()
-    boom = False
     for d in iterdicts:
         outcome.update(d)
     return outcome
@@ -51,7 +49,8 @@ class Notebook(object):
     def __init__(self, node_or_path, translators=None):
         if isinstance(node_or_path, string_types):
             if not node_or_path.endswith(".ipynb"):
-                raise ValueError("Requires an '.ipynb' file extension. Provided path: '{}'".format(node_or_path))
+                raise ValueError(
+                    "Requires an '.ipynb' file extension. Provided path: '{}'".format(node_or_path))
             self.path = node_or_path
             self.node = load_notebook_node(node_or_path)
         else:
@@ -103,7 +102,7 @@ class Notebook(object):
         return [
             # TODO: Other timing conventions?
             cell.metadata.get('papermill', {}).get('duration', 0.0)
-                if cell.get("execution_count") else None
+            if cell.get("execution_count") else None
             for cell in self.node.cells
         ]
 
@@ -202,7 +201,7 @@ class Scrapbook(collections.MutableMapping):
     """
 
     def __init__(self):
-        self._notebooks = {}
+        self._notebooks = collections.OrderedDict()
 
     def __setitem__(self, key, value):
         # If notebook is a path str then load the notebook.
@@ -255,7 +254,7 @@ class Scrapbook(collections.MutableMapping):
     @property
     def scraps(self):
         """dict: a dictionary of the notebook scraps by key."""
-        return { key: nb.scraps for key, nb in self._notebooks.items() }
+        return {key: nb.scraps for key, nb in self._notebooks.items()}
 
     @property
     def combined_scraps(self):
@@ -265,7 +264,7 @@ class Scrapbook(collections.MutableMapping):
     @property
     def frames(self):
         """dict: a dictionary of the notebook display outputs by key."""
-        return { key: nb.frames for key, nb in self._notebooks.items() }
+        return {key: nb.frames for key, nb in self._notebooks.items()}
 
     @property
     def combined_frames(self):

@@ -12,7 +12,7 @@ import IPython
 from six import string_types
 from IPython.display import display as ip_display
 # We lean on papermill's readers to connect to remote stores
-from papermill.iorw import load_notebook_node, list_notebook_files
+from papermill.iorw import list_notebook_files
 
 from .models import Notebook, Scrapbook, GLUE_OUTPUT_PREFIX
 from .translators import registry as translator_registry
@@ -108,6 +108,7 @@ def read_notebook(path):
 
     """
     return Notebook(path)
+
 
 def read_notebooks(path):
     """
