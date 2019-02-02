@@ -50,8 +50,8 @@ def test_combined_scraps(notebook_collection):
     }
 
 
-def test_frames(notebook_collection):
-    assert notebook_collection.frames == {
+def test_highlights(notebook_collection):
+    assert notebook_collection.highlights == {
         'result1': {
             'output': {
                 'data': {'text/plain': "'Hello World!'"},
@@ -79,8 +79,8 @@ def test_frames(notebook_collection):
     }
 
 
-def test_combined_frames(notebook_collection):
-    assert notebook_collection.combined_frames == {
+def test_combined_highlights(notebook_collection):
+    assert notebook_collection.combined_highlights == {
         'output': {
             'data': {'text/plain': "'Hello World 2!'"},
             'metadata': {'papermill': {'name': 'output'}},
@@ -236,16 +236,16 @@ def test_display_specific_notebook(mock_display, keys, notebook_collection):
 
 
 @pytest.mark.parametrize(
-    "frames",
+    "highlights",
     [
         ('one_only',),
         (['one_only'],),
     ],
 )
 @mock.patch('scrapbook.models.ip_display')
-def test_display_specific_frame(mock_display, frames, notebook_collection):
-    for frame in frames:
-        notebook_collection.display(frames=frame, header=False)
+def test_display_specific_highlight(mock_display, highlights, notebook_collection):
+    for highlight in highlights:
+        notebook_collection.display(highlights=highlight, header=False)
         mock_display.assert_has_calls([
             mock.call(
                 {'text/plain': "'Just here!'"},
@@ -256,8 +256,8 @@ def test_display_specific_frame(mock_display, frames, notebook_collection):
 
 
 @mock.patch('scrapbook.models.ip_display')
-def test_display_frame_key_mismatches(mock_display, notebook_collection):
-    notebook_collection.display(frames='one_only')
+def test_display_highlight_key_mismatches(mock_display, notebook_collection):
+    notebook_collection.display(highlights='one_only')
     mock_display.assert_has_calls([
         mock.call(AnyMarkdownWith("### result1")),
         mock.call(AnyMarkdownWith("#### one_only")),
@@ -269,10 +269,10 @@ def test_display_frame_key_mismatches(mock_display, notebook_collection):
         mock.call(AnyMarkdownWith("<hr>")),
         mock.call(AnyMarkdownWith("### result2")),
         mock.call(AnyMarkdownWith("#### one_only")),
-        mock.call('No frame available for one_only'),
+        mock.call('No highlight available for one_only'),
     ])
 
 
-def test_display_missing_frame_error(notebook_collection):
+def test_display_missing_highlight_error(notebook_collection):
     with pytest.raises(ScrapbookException):
-        notebook_collection.display(frames='one_only', raise_error=True)
+        notebook_collection.display(highlights='one_only', raise_error=True)
