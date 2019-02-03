@@ -127,7 +127,7 @@ def read_notebooks(path):
 
     """
     scrapbook = Scrapbook()
-    for notebook_path in list_notebook_files(path):
+    for notebook_path in sorted(list_notebook_files(path)):
         fn = os.path.splitext(os.path.basename(notebook_path))[0]
         scrapbook[fn] = read_notebook(notebook_path)
     return scrapbook
