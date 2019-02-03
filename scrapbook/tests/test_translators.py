@@ -61,7 +61,7 @@ class Dummy(object):
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        ({"foo": "bar", "baz": 1}, "{'foo': 'bar', 'baz': 1}"),
+        ({"foo": "bar", "baz": 1}, str({"foo": "bar", "baz": 1})),
         ('{"foo":"bar","baz":1}', '{"foo":"bar","baz":1}'),
         (["foo", "bar", 1, 2, 3], "['foo', 'bar', 1, 2, 3]"),
         ('["foo","bar",1,2,3]', '["foo","bar",1,2,3]'),
@@ -76,7 +76,7 @@ def test_unicode_load(test_input, expected):
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        ({"foo": "bar", "baz": 1}, "{'foo': 'bar', 'baz': 1}"),
+        ({"foo": "bar", "baz": 1}, str({"foo": "bar", "baz": 1})),
         ('{"foo":"bar","baz":1}', '{"foo":"bar","baz":1}'),
         (["foo", "bar", 1, 2, 3], "['foo', 'bar', 1, 2, 3]"),
         ('["foo","bar",1,2,3]', '["foo","bar",1,2,3]'),
