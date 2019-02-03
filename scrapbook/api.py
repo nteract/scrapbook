@@ -28,7 +28,7 @@ def glue(name, scrap, storage=None):
 
     Example
     -------
-    `record` provides a handy way for data to be stored with a notebook to
+    `glue` provides a handy way for data to be stored with a notebook to
     be used later::
 
         sb.glue("hello", "world")
@@ -78,6 +78,9 @@ def glue(name, scrap, storage=None):
 def highlight(name, obj):
     """
     Display an object with the reference `name` in a retrievable manner.
+
+    Unlike `glue` this is intended to generate a visible display output for
+    notebook interfaces to render.
 
     Parameters
     ----------
