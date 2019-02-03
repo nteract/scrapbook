@@ -240,7 +240,7 @@ class Scrapbook(collections.MutableMapping):
         # Backwards compatible dataframe interface
 
         df_list = []
-        for key in sorted(self._notebooks):
+        for key in self._notebooks:
             nb = self._notebooks[key]
             df = nb.papermill_dataframe
             df["key"] = key
@@ -251,7 +251,7 @@ class Scrapbook(collections.MutableMapping):
     def papermill_metrics(self):
         """list: a list of metrics from a collection of notebooks"""
         df_list = []
-        for key in sorted(self._notebooks):
+        for key in self._notebooks:
             nb = self._notebooks[key]
             df = nb.papermill_metrics
             df["key"] = key
@@ -259,8 +259,8 @@ class Scrapbook(collections.MutableMapping):
         return pd.concat(df_list).reset_index(drop=True)
 
     @property
-    def sorted_notebooks(self):
-        """list: sorted list of associated notebooks."""
+    def notebooks(self):
+        """list: a sorted list of associated notebooks."""
         return map(
             operator.itemgetter(1),
             sorted(self._notebooks.items(), key=operator.itemgetter(0)),
@@ -272,9 +272,9 @@ class Scrapbook(collections.MutableMapping):
         return {key: nb.scraps for key, nb in self._notebooks.items()}
 
     @property
-    def combined_scraps(self):
+    def flat_scraps(self):
         """dict: a dictionary of the merged notebook scraps."""
-        return merge_dicts(nb.scraps for nb in self.sorted_notebooks)
+        return merge_dicts(nb.scraps for nb in self.notebooks)
 
     @property
     def highlights(self):
@@ -282,9 +282,9 @@ class Scrapbook(collections.MutableMapping):
         return {key: nb.highlights for key, nb in self._notebooks.items()}
 
     @property
-    def combined_highlights(self):
+    def flat_highlights(self):
         """dict: a dictionary of the merged notebook display outputs."""
-        return merge_dicts(nb.highlights for nb in self.sorted_notebooks)
+        return merge_dicts(nb.highlights for nb in self.notebooks)
 
     def display(self, highlights=None, keys=None, header=True, raise_error=False):
         """

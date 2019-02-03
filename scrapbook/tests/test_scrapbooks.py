@@ -42,8 +42,8 @@ def test_scraps(notebook_collection):
     }
 
 
-def test_combined_scraps(notebook_collection):
-    assert notebook_collection.combined_scraps == {
+def test_flat_scraps(notebook_collection):
+    assert notebook_collection.flat_scraps == {
         "dict": {u"a": 3, u"b": 4},
         "list": [4, 5, 6],
         "number": 2,
@@ -81,8 +81,8 @@ def test_highlights(notebook_collection):
     }
 
 
-def test_combined_highlights(notebook_collection):
-    assert notebook_collection.combined_highlights == {
+def test_flat_highlights(notebook_collection):
+    assert notebook_collection.flat_highlights == {
         "output": {
             "data": {"text/plain": "'Hello World 2!'"},
             "metadata": {"papermill": {"name": "output"}},
