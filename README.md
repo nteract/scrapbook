@@ -1,4 +1,5 @@
 <!---(binder links generated at https://mybinder.readthedocs.io/en/latest/howto/badges.html and compressed at https://tinyurl.com) -->
+
 [![Build Status](https://travis-ci.org/nteract/scrapbook.svg?branch=master)](https://travis-ci.org/nteract/scrapbook)
 [![image](https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=master)](https://codecov.io/github/nteract/scrapbook=master)
 [![Documentation Status](https://readthedocs.org/projects/nteract-scrapbook/badge/?version=latest)](https://nteract-scrapbook.readthedocs.io/en/latest/?badge=latest)
@@ -7,12 +8,17 @@
 
 # scrapbook
 
-A library for recording a notebook’s data values (scraps) and generated content (highlights). These recorded scraps and snaps can be read at a future time.
+**scrapbook** is a library for recording a notebook’s data values (scraps) and
+generated content (highlights). These recorded scraps and highlights can be read
+at a future time.
 
 Two new names for information are introduced in scrapbook:
 
-- **scraps**: serializable data values such as strings, lists of objects, pandas dataframes, or data table references.
-- **highlights**: named displays of information such as a generated image, plot, or UI message which encapsulate information but do not store the underlying data.
+- **scraps**: serializable data values such as strings, lists of objects, pandas
+  dataframes, or data table references.
+- **highlights**: named displays of information such as a generated image, plot,
+  or UI message which encapsulate information but do not store the underlying
+  data.
 
 ## Use Case
 
@@ -21,6 +27,7 @@ This recorded data can then be read to be used at a later time or be passed to
 another notebook as input.
 
 Namely scrapbook lets you:
+
 - **persist** data (scraps) in a notebook
 - **highlight** named displays (highlights) in notebooks
 - **recall** any persisted scrap of data or highlight
@@ -30,11 +37,12 @@ Namely scrapbook lets you:
 
 Scrapbook adds a few basic api commands which enable saving and retrieving data.
 
-### glue
+### `glue` to persist scraps
 
-Records a scrap (data value) in the given notebook cell.
+Records a `scrap` (data value) in the given notebook cell.
 
-The scrap (recorded value) can be retrieved during later inspection of the output notebook.
+The `scrap` (recorded value) can be retrieved during later inspection of the
+output notebook.
 
 ```python
 sb.glue("hello", "world")
@@ -44,49 +52,66 @@ sb.glue("some_dict", {"a": 1, "b": 2})
 sb.glue("non_json", df, 'arrow')
 ```
 
-The scrapbook library can be used later to recover scraps (recorded values)  from the output notebook
+The scrapbook library can be used later to recover scraps (recorded values)
+from the output notebook:
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
 nb.scraps
 ```
 
-The storage format of the scraps is implied by the value type any registered data translators, but can be overwritten by setting the `storage` argument to a particular translator's registered name (e.g. `"json"`).
+**scrapbook** will imply the storage format by the value type of any registered
+data translators. Alternatively, the implied storage format can be overwritten by
+setting the `storage` argument to the registered name (e.g. `"json"`) of a
+particular translator.
 
-This data is persisted by generating a display output with a special media type identifying the content storage format and data. These outputs are not visible in notebook rendering but still exist in the document. Scrapbook then can rehydrate the data associated with the notebook in the future by reading these cell outputs. 
+This data is persisted by generating a display output with a special media type identifying the content storage format and data. These outputs are not visible in notebook rendering but still exist in the document. Scrapbook then can rehydrate the data associated with the notebook in the future by reading these cell outputs.
 
-### highlight
+### `highlight` to save _display output_
 
-Display a highlight (an object with the reference `name` in a retrievable manner). Unlike `glue` this is intended to generate a highlight (visible display output) for notebook interfaces to render.
+Display a highlight (an object with the reference `name` in a retrievable manner).
+
+Unlike `glue`, `highlight` is intended to generate a visible display output
+for notebook interfaces to render.
 
 ```python
-sb.highlight("hello", "Hello World")
+# record an image highlight
 sb.highlight("sharable_png", IPython.display.Image(filename=get_fixture_path("sharable.png")))
+# record a UI message highlight
+sb.highlight("hello", "Hello World")
 ```
 
-Like scraps these can be retrieved at a later time, though they don't cary any actual data, just the display result of some object.
+Like scraps, these can be retrieved at a later time. Unlike scraps, highlights
+do not carry any actual underlying data, keeping just the display result of some
+object.
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
 nb.highlights
 ```
 
-More usefully, you can copy highlights from earlier executions to re-display the object in the current notebook.
+More usefully, you can copy highlights from earlier notebook executions and
+re-display the object in the current notebook.
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
 nb.copy_highlight("sharable_png")
 ```
 
-### read_notebook
+### `read_notebook` reads one notebook
 
-Reads a Notebook object loaded from the location specified at `path`. You've already seen how this function is used in the above api calls, but essentially this provides a thin wrapper over an nbformat notebook object with the ability to extract scrapbook scraps and highlights.
+Reads a Notebook object loaded from the location specified at `path`.
+You've already seen how this function is used in the above api call examples,
+but essentially this provides a thin wrapper over an `nbformat` notebook object
+with the ability to extract scrapbook scraps and highlights.
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
 ```
 
-The Notebook object also has a few legacy functions for backwards compatability with papermill's Notebook object model. As a result it can be used to read papermill execution statistics as well as scrapbook abstractions.
+The Notebook object also has a few legacy functions for backwards compatability
+with papermill's Notebook object model. As a result, it can be used to read
+papermill execution statistics as well as scrapbook abstractions:
 
 ```python
 nb.cell_timing
@@ -96,56 +121,70 @@ nb.parameter_dataframe
 nb.papermill_dataframe
 ```
 
-The notebook reader relies on [papermill's registered iorw](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html) to enable access to a variety of sources such as -- but not limited to -- S3, Azure, and Google Cloud.
+The notebook reader relies on [papermill's registered iorw](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
+to enable access to a variety of sources such as -- but not limited to -- S3,
+Azure, and Google Cloud.
 
-### read_notebooks
+### `read_notebooks` reads many notebooks
 
-Reads all notebooks in a given `path` into a Scrapbook object.
+Reads all notebooks located in a given `path` into a Scrapbook object.
 
 ```python
+# create a scrapbook named `book`
 book = sb.read_notebooks('path/to/notebook/collection/')
-book.sorted_notebooks # get the underlying notebooks as a list
+# get the underlying notebooks as a list
+book.sorted_notebooks
 ```
 
-The Scrapbook can be used to recall all scraps across the collection:
+The Scrapbook (`book` in this example) can be used to recall all scraps across
+the collection of notebooks:
+
 ```python
 book.scraps # Map of {notebook -> {name -> scrap}}
 book.flat_scraps # Map of {name -> scrap}
 ```
 
-Or to collect highlights:
+Or to collect all highlights:
 
 ```python
 book.highlights # Map of {notebook -> {name -> highlight}}
 book.flat_highlights # Map of {name -> highlight}
 ```
 
-The Scrapbook collection can be used to display all the highlights from the collection as a markdown structured output as well.
+The Scrapbook collection can be used to `display` all the highlights from the
+collection as a markdown structured output as well.
 
 ```python
 book.display()
 ```
 
-This display can filter on highlight names and keys, as well as enable or disable an overall header for the display.
+This display can filter on highlight names and keys, as well as enable or disable
+an overall header for the display.
 
-Finally the scrapbook has two backwards compatible features for deprecated papermill capabilities:
+Finally the scrapbook has two backwards compatible features for deprecated
+`papermill` capabilities:
 
 ```python
 book.papermill_dataframe
 book.papermill_metrics
 ```
 
-This function also relies on [papermill's registered iorw](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html) to list and read files form various sources.
+These function also relies on [papermill's registered `iorw`](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
+to list and read files form various sources.
 
 ## Storage Formats
 
-Storage formats are accessible by key names to Translator objects registered against the `translators.registry` object. To register new data translator / loaders simple call
+Storage formats are accessible by key names to Translator objects registered
+against the `translators.registry` object. To register new data
+translator / loaders simply call:
 
 ```python
+# add translator to the registry
 registry.register("custom_store_name", MyCustomTranslator())
 ```
 
-The store class must implement two methods:
+The store class must implement two methods, `translate` and `load`:
+
 ```python
 class MyCustomTranslator(object):
     def translate(self, scrap):
@@ -155,9 +194,10 @@ class MyCustomTranslator(object):
         pass  # TODO: Implement
 ```
 
-which can read transform scraps into a string representing their contents or location and load those strings back into the original data objects.
+This can read transform scraps into a string representing their contents or
+location and load those strings back into the original data objects.
 
-### unicode
+### `unicode`
 
 A basic string storage format that saves data as python strings.
 
@@ -165,17 +205,17 @@ A basic string storage format that saves data as python strings.
 sb.glue("hello", "world", "unicode")
 ```
 
-### json
+### `json`
 
 ```python
 sb.glue("foo_json", {"foo": "bar", "baz": 1}, "json")
 ```
 
-### arrow
+### `arrow`
 
 Implementation Pending!
 
-## papermill's deprecated record feature
+## papermill's deprecated `record` feature
 
 **scrapbook** provides a robust and flexible recording schema. This library is
 intended to replace [papermill](https://papermill.readthedocs.io)'s existing
@@ -194,7 +234,8 @@ pm.record("some_list", [1, 3, 5])
 pm.record("some_dict", {"a": 1, "b": 2})
 ```
 
-`pm.read_notebook(notebook)`: pandas could be used later to recover recorded values by reading the output notebook into a dataframe.
+`pm.read_notebook(notebook)`: pandas could be used later to recover recorded
+values by reading the output notebook into a dataframe.
 
 ```python
 nb = pm.read_notebook('notebook.ipynb')
@@ -205,7 +246,7 @@ nb.dataframe
 
 - The `record` function didn't follow papermill's pattern of linear execution
   of a notebook codebase. (It was awkward to describe `record` as an additional
-  feature of papermill this week. It really felt like describing a second less 
+  feature of papermill this week. It really felt like describing a second less
   developed library.)
 - Recording / Reading required data translation to JSON for everything. This is
   a tedious, painful process for dataframes.
@@ -213,5 +254,3 @@ nb.dataframe
   shapes.
 - Less modularity and flexiblity than other papermill components where custom
   operators can be registered.
-
-
