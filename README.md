@@ -7,19 +7,24 @@
 
 # scrapbook
 
-A library for recording a notebook's data values and reading these recorded data values at a later time.
+A library for recording a notebook’s data values (scraps) and generated content (highlights). These recorded scraps and snaps can be read at a future time.
 
-Namely scrapbook lets you:
-- **persist** data in a notebook
-- **highlight** named displays in notebooks
-- **recall** any persisted scrap of data or highlight
-- **summarize collections** of notebooks
+Two new names for information are introduced in scrapbook:
 
-## Use case
+- **scraps**: serializable data values such as strings, lists of objects, pandas dataframes, or data table references.
+- **highlights**: named displays of information such as a generated image, plot, or UI message which encapsulate information but do not store the underlying data.
+
+## Use Case
 
 Notebook users may wish to record data produced during a notebook execution.
 This recorded data can then be read to be used at a later time or be passed to
 another notebook as input.
+
+Namely scrapbook lets you:
+- **persist** data (scraps) in a notebook
+- **highlight** named displays (highlights) in notebooks
+- **recall** any persisted scrap of data or highlight
+- **summarize collections** of notebooks
 
 ## API Calls
 
@@ -27,9 +32,9 @@ Scrapbook adds a few basic api commands which enable saving and retrieving data.
 
 ### glue
 
-Records a value (scrap) in the given notebook cell.
+Records a scrap (data value) in the given notebook cell.
 
-The recorded value can be retrieved during later inspection of the output notebook.
+The scrap (recorded value) can be retrieved during later inspection of the output notebook.
 
 ```python
 sb.glue("hello", "world")
@@ -39,7 +44,7 @@ sb.glue("some_dict", {"a": 1, "b": 2})
 sb.glue("non_json", df, 'arrow')
 ```
 
-The scrapbook library can be used later to recover recorded values by reading the output notebook
+The scrapbook library can be used later to recover scraps (recorded values)  from the output notebook
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
@@ -52,7 +57,7 @@ This data is persisted by generating a display output with a special media type 
 
 ### highlight
 
-Display an object with the reference `name` in a retrievable manner. Unlike `glue` this is intended to generate a visible display output for notebook interfaces to render.
+Display a highlight (an object with the reference `name` in a retrievable manner). Unlike `glue` this is intended to generate a highlight (visible display output) for notebook interfaces to render.
 
 ```python
 sb.highlight("hello", "Hello World")
@@ -63,7 +68,7 @@ Like scraps these can be retrieved at a later time, though they don't cary any a
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
-nb.highlights()
+nb.highlights
 ```
 
 More usefully, you can copy highlights from earlier executions to re-display the object in the current notebook.
@@ -104,15 +109,15 @@ book.sorted_notebooks # get the underlying notebooks as a list
 
 The Scrapbook can be used to recall all scraps across the collection:
 ```python
-book.scraps
-book.combined_scraps
+book.scraps # Map of {notebook -> {name -> scrap}}
+book.flat_scraps # Map of {name -> scrap}
 ```
 
 Or to collect highlights:
 
 ```python
-book.highlights
-book.combined_highlights
+book.highlights # Map of {notebook -> {name -> highlight}}
+book.flat_highlights # Map of {name -> highlight}
 ```
 
 The Scrapbook collection can be used to display all the highlights from the collection as a markdown structured output as well.
