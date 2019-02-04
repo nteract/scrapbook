@@ -9,14 +9,14 @@
 # scrapbook
 
 **scrapbook** is a library for recording a notebook’s data values (scraps) and
-generated content (highlights). These recorded scraps and highlights can be read
+generated visual content (snaps). These recorded scraps and snaps can be read
 at a future time.
 
 Two new names for information are introduced in scrapbook:
 
 - **scraps**: serializable data values such as strings, lists of objects, pandas
   dataframes, or data table references.
-- **highlights**: named displays of information such as a generated image, plot,
+- **snaps**: named displays of information such as a generated image, plot,
   or UI message which encapsulate information but do not store the underlying
   data.
 
@@ -29,8 +29,8 @@ another notebook as input.
 Namely scrapbook lets you:
 
 - **persist** data (scraps) in a notebook
-- **highlight** named displays (highlights) in notebooks
-- **recall** any persisted scrap of data or highlight
+- **sketch** named displays (snaps) in notebooks
+- **recall** any persisted scrap of data or displayed snap
 - **summarize collections** of notebooks
 
 ## API Calls
@@ -65,20 +65,23 @@ data translators. Alternatively, the implied storage format can be overwritten b
 setting the `storage` argument to the registered name (e.g. `"json"`) of a
 particular translator.
 
-This data is persisted by generating a display output with a special media type identifying the content storage format and data. These outputs are not visible in notebook rendering but still exist in the document. Scrapbook then can rehydrate the data associated with the notebook in the future by reading these cell outputs.
+This data is persisted by generating a display output with a special media type
+identifying the content storage format and data. These outputs are not visible in
+notebook rendering but still exist in the document. Scrapbook then can rehydrate
+the data associated with the notebook in the future by reading these cell outputs.
 
-### `highlight` to save _display output_
+### `sketch` to save _display output_
 
-Display a highlight (an object with the reference `name` in a retrievable manner).
+Display a named snap (visible display output) in a retrievable manner.
 
-Unlike `glue`, `highlight` is intended to generate a visible display output
+Unlike `glue`, `sketch` is intended to generate a visible display output
 for notebook interfaces to render.
 
 ```python
 # record an image highlight
-sb.highlight("sharable_png", IPython.display.Image(filename=get_fixture_path("sharable.png")))
+sb.sketch("sharable_png", IPython.display.Image(filename=get_fixture_path("sharable.png")))
 # record a UI message highlight
-sb.highlight("hello", "Hello World")
+sb.sketch("hello", "Hello World")
 ```
 
 Like scraps, these can be retrieved at a later time. Unlike scraps, highlights
@@ -87,11 +90,12 @@ object.
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
-nb.highlights
+# Returns the dict of name -> snap pairs saved in `nb`
+nb.snaps
 ```
 
-More usefully, you can copy highlights from earlier notebook executions and
-re-display the object in the current notebook.
+More usefully, you can copy snaps from earlier notebook executions to re-display
+the object in the current notebook.
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
@@ -103,10 +107,18 @@ nb.copy_highlight("sharable_png")
 Reads a Notebook object loaded from the location specified at `path`.
 You've already seen how this function is used in the above api call examples,
 but essentially this provides a thin wrapper over an `nbformat` notebook object
-with the ability to extract scrapbook scraps and highlights.
+with the ability to extract scrapbook scraps and snaps.
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
+```
+
+The abstraction makes saved content available as a dataframe referencing each
+key and source. More of these methods will be made available in later versions.
+
+```python
+# Produces a data frame with ["name", "value", "type", "filename"] as columns
+nb.scrap_dataframe
 ```
 
 The Notebook object also has a few legacy functions for backwards compatability
@@ -114,11 +126,11 @@ with papermill's Notebook object model. As a result, it can be used to read
 papermill execution statistics as well as scrapbook abstractions:
 
 ```python
-nb.cell_timing
-nb.execution_counts
-nb.papermill_metrics
-nb.parameter_dataframe
-nb.papermill_dataframe
+nb.cell_timing # List of cell execution timings in cell order
+nb.execution_counts # List of cell execution counts in cell order
+nb.papermill_metrics # Dataframe of cell execution counts and times
+nb.parameter_dataframe # Dataframe of notebook parameters
+nb.papermill_dataframe # Dataframe of notebook parameters and cell scraps
 ```
 
 The notebook reader relies on [papermill's registered iorw](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
@@ -144,21 +156,21 @@ book.scraps # Map of {notebook -> {name -> scrap}}
 book.flat_scraps # Map of {name -> scrap}
 ```
 
-Or to collect all highlights:
+Or to collect snaps:
 
 ```python
-book.highlights # Map of {notebook -> {name -> highlight}}
-book.flat_highlights # Map of {name -> highlight}
+book.snaps # Map of {notebook -> {name -> snap}}
+book.flat_highlights # Map of {name -> snap}
 ```
 
-The Scrapbook collection can be used to `display` all the highlights from the
+The Scrapbook collection can be used to `display` all the snaps from the
 collection as a markdown structured output as well.
 
 ```python
 book.display()
 ```
 
-This display can filter on highlight names and keys, as well as enable or disable
+This display can filter on snap names and keys, as well as enable or disable
 an overall header for the display.
 
 Finally the scrapbook has two backwards compatible features for deprecated
