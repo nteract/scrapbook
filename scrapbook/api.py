@@ -23,16 +23,18 @@ def glue(name, scrap, storage=None):
     """
     Records a scrap (data value) in the given notebook cell.
 
-    The scrap (recorded value) can be retrieved during later inspection of the output notebook.
+    The scrap (recorded value) can be retrieved during later inspection of the
+    output notebook.
 
-    The storage format of the scraps is implied by the value type any registered data translators,
-    but can be overwritten by setting the `storage` argument to a particular translator's
-    registered name (e.g. `"json"`).
+    The storage format of the scraps is implied by the value type any registered
+    data translators, but can be overwritten by setting the `storage` argument
+    to a particular translator's registered name (e.g. `"json"`).
 
-    This data is persisted by generating a display output with a special media type identifying
-    the content storage format and data. These outputs are not visible in notebook rendering but
-    still exist in the document. Scrapbook then can rehydrate the data associated with the notebook
-    in the future by reading these cell outputs.
+    This data is persisted by generating a display output with a special media
+    type identifying the content storage format and data. These outputs are not
+    visible in notebook rendering but still exist in the document. Scrapbook
+    then can rehydrate the data associated with the notebook in the future by
+    reading these cell outputs.
 
     Example
     -------
@@ -43,7 +45,8 @@ def glue(name, scrap, storage=None):
         sb.glue("some_dict", {"a": 1, "b": 2})
         sb.glue("non_json", df, 'arrow')
 
-    The scrapbook library can be used later to recover scraps (recorded values)  from the output notebook
+    The scrapbook library can be used later to recover scraps (recorded values)
+    from the output notebook
 
         nb = sb.read_notebook('notebook.ipynb')
         nb.scraps
@@ -91,13 +94,14 @@ def sketch(name, obj):
         sb.sketch("hello", "Hello World")
         sb.sketch("sharable_png", IPython.display.Image(filename=get_fixture_path("sharable.png")))
 
-    Like scraps these can be retrieved at a later time, though they don't cary any actual data,
-    just the display result of some object.
+    Like scraps these can be retrieved at a later time, though they don't cary
+    any actual data, just the display result of some object.
 
         nb = sb.read_notebook('notebook.ipynb')
         nb.snaps
 
-    More usefully, you can copy snaps from earlier executions to re-display the object in the current notebook.
+    More usefully, you can copy snaps from earlier executions to re-display the
+    object in the current notebook.
 
         nb = sb.read_notebook('notebook.ipynb')
         nb.resketch("sharable_png")
