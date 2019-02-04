@@ -21,15 +21,21 @@ from .translators import registry as translator_registry
 
 def glue(name, scrap, storage=None):
     """
-    Record a value in the output notebook when a cell is executed.
+    Records a scrap (data value) in the given notebook cell.
 
-    The recorded value can be retrieved during later inspection of the
-    output notebook.
+    The scrap (recorded value) can be retrieved during later inspection of the output notebook.
+
+    The storage format of the scraps is implied by the value type any registered data translators,
+    but can be overwritten by setting the `storage` argument to a particular translator's
+    registered name (e.g. `"json"`).
+
+    This data is persisted by generating a display output with a special media type identifying
+    the content storage format and data. These outputs are not visible in notebook rendering but
+    still exist in the document. Scrapbook then can rehydrate the data associated with the notebook
+    in the future by reading these cell outputs.
 
     Example
     -------
-    `glue` provides a handy way for data to be stored with a notebook to
-    be used later::
 
         sb.glue("hello", "world")
         sb.glue("number", 123)
@@ -37,8 +43,7 @@ def glue(name, scrap, storage=None):
         sb.glue("some_dict", {"a": 1, "b": 2})
         sb.glue("non_json", df, 'arrow')
 
-    scrapbook can be used later to recover recorded values by
-    reading the output notebook
+    The scrapbook library can be used later to recover scraps (recorded values)  from the output notebook
 
         nb = sb.read_notebook('notebook.ipynb')
         nb.scraps
@@ -75,12 +80,27 @@ def glue(name, scrap, storage=None):
     ip_display(data, raw=True)
 
 
-def highlight(name, obj):
+def sketch(name, obj):
     """
-    Display an object with the reference `name` in a retrievable manner.
+    Display a named snap (visible display output) in a retrievable manner.
+    Unlike `glue` this is intended to generate a snap for notebook interfaces to render.
 
-    Unlike `glue` this is intended to generate a visible display output for
-    notebook interfaces to render.
+    Example
+    -------
+
+        sb.sketch("hello", "Hello World")
+        sb.sketch("sharable_png", IPython.display.Image(filename=get_fixture_path("sharable.png")))
+
+    Like scraps these can be retrieved at a later time, though they don't cary any actual data,
+    just the display result of some object.
+
+        nb = sb.read_notebook('notebook.ipynb')
+        nb.snaps
+
+    More usefully, you can copy snaps from earlier executions to re-display the object in the current notebook.
+
+        nb = sb.read_notebook('notebook.ipynb')
+        nb.copy_highlight("sharable_png")
 
     Parameters
     ----------

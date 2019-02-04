@@ -63,7 +63,7 @@ class Notebook(object):
 
         # Memoized traits
         self._scraps = None
-        self._highlights = None
+        self._snaps = None
 
     @property
     def filename(self):
@@ -161,7 +161,7 @@ class Notebook(object):
         # Meant for backwards compatibility to papermill's dataframe method
         return self.parameter_dataframe.append(self.scrap_dataframe, ignore_index=True)
 
-    def _fetch_highlights(self):
+    def _fetch_snaps(self):
         outputs = collections.OrderedDict()
         for cell in self.node.cells:
             for output in cell.get("outputs", []):
@@ -177,33 +177,33 @@ class Notebook(object):
         return outputs
 
     @property
-    def highlights(self):
+    def snaps(self):
         """dict: a dictionary of the notebook display outputs."""
-        if self._highlights is None:
-            self._highlights = self._fetch_highlights()
-        return self._highlights
+        if self._snaps is None:
+            self._snaps = self._fetch_snaps()
+        return self._snaps
 
-    def copy_highlight(self, name, raise_error=True):
+    def resketch(self, name, raise_error=True):
         """
         Display output from a named source of the notebook.
 
         Parameters
         ----------
         name : str
-            name of highlighted object
+            name of sketched (snap) object
         raise_error : bool
-            indicator for if the copy_highlight should print a message or error on missing highlight
+            indicator for if the resketch should print a message or error on missing snaps
 
         """
-        if name not in self.highlights:
+        if name not in self.snaps:
             if raise_error:
                 raise ScrapbookException(
                     "Frame '{}' is not available in this notebook.".format(name)
                 )
             else:
-                ip_display("No highlight available for {}".format(name))
+                ip_display("No snap available for {}".format(name))
         else:
-            output = self.highlights[name]
+            output = self.snaps[name]
             ip_display(output.data, metadata=output.metadata, raw=True)
 
 
@@ -235,7 +235,7 @@ class Scrapbook(collections.MutableMapping):
 
     @property
     def papermill_dataframe(self):
-        """list: a list of datahighlights from a collection of notebooks"""
+        """list: a list of data names from a collection of notebooks"""
 
         # Backwards compatible dataframe interface
 
@@ -277,32 +277,32 @@ class Scrapbook(collections.MutableMapping):
         return merge_dicts(nb.scraps for nb in self.notebooks)
 
     @property
-    def highlights(self):
-        """dict: a dictionary of the notebook display outputs by key."""
-        return {key: nb.highlights for key, nb in self._notebooks.items()}
+    def snaps(self):
+        """dict: a dictionary of the notebook snap outputs by key."""
+        return {key: nb.snaps for key, nb in self._notebooks.items()}
 
     @property
-    def flat_highlights(self):
-        """dict: a dictionary of the merged notebook display outputs."""
-        return merge_dicts(nb.highlights for nb in self.notebooks)
+    def flat_snaps(self):
+        """dict: a dictionary of the merged notebook snap outputs."""
+        return merge_dicts(nb.snaps for nb in self.notebooks)
 
-    def display(self, highlights=None, keys=None, header=True, raise_error=False):
+    def display(self, snaps=None, keys=None, header=True, raise_error=False):
         """
-        Display highlights as markdown structed outputs.
+        Display snaps as markdown structed outputs.
 
         Parameters
         ----------
-        highlights : str or iterable[str] (optional)
-            the highlights to display as outputs
+        snaps : str or iterable[str] (optional)
+            the snaps to display as outputs
         keys : str or iterable[str] (optional)
             notebook keys to use in framing the scrapbook displays
         header : bool (default: True)
-            indicator for if the highlights should have headers
+            indicator for if the snaps should have headers
         raise_error : bool (default: False)
             flag for if errors should be raised on missing output_names
         """
-        if isinstance(highlights, string_types):
-            highlights = [highlights]
+        if isinstance(snaps, string_types):
+            snaps = [snaps]
 
         if keys is None:
             keys = self._notebooks.keys()
@@ -315,12 +315,12 @@ class Scrapbook(collections.MutableMapping):
                     ip_display(Markdown("<hr>"))  # tag between outputs
                 ip_display(Markdown("### {}".format(k)))
 
-            if highlights is None:
-                names = self[k].highlights.keys()
+            if snaps is None:
+                names = self[k].snaps.keys()
             else:
-                names = highlights
+                names = snaps
 
             for name in names:
                 if header:
                     ip_display(Markdown("#### {}".format(name)))
-                self[k].copy_highlight(name, raise_error=raise_error)
+                self[k].resketch(name, raise_error=raise_error)

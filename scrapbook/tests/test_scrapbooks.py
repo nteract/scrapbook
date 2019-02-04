@@ -52,8 +52,8 @@ def test_flat_scraps(notebook_collection):
     }
 
 
-def test_highlights(notebook_collection):
-    assert notebook_collection.highlights == {
+def test_snaps(notebook_collection):
+    assert notebook_collection.snaps == {
         "result1": {
             "output": {
                 "data": {"text/plain": "'Hello World!'"},
@@ -81,8 +81,8 @@ def test_highlights(notebook_collection):
     }
 
 
-def test_flat_highlights(notebook_collection):
-    assert notebook_collection.flat_highlights == {
+def test_flat_snaps(notebook_collection):
+    assert notebook_collection.flat_snaps == {
         "output": {
             "data": {"text/plain": "'Hello World 2!'"},
             "metadata": {"papermill": {"name": "output"}},
@@ -237,11 +237,11 @@ def test_display_specific_notebook(mock_display, keys, notebook_collection):
         )
 
 
-@pytest.mark.parametrize("highlights", [("one_only",), (["one_only"],)])
+@pytest.mark.parametrize("snaps", [("one_only",), (["one_only"],)])
 @mock.patch("scrapbook.models.ip_display")
-def test_display_specific_highlight(mock_display, highlights, notebook_collection):
-    for highlight in highlights:
-        notebook_collection.display(highlights=highlight, header=False)
+def test_display_specific_snap(mock_display, snaps, notebook_collection):
+    for snap in snaps:
+        notebook_collection.display(snaps=snap, header=False)
         mock_display.assert_has_calls(
             [
                 mock.call(
@@ -254,8 +254,8 @@ def test_display_specific_highlight(mock_display, highlights, notebook_collectio
 
 
 @mock.patch("scrapbook.models.ip_display")
-def test_display_highlight_key_mismatches(mock_display, notebook_collection):
-    notebook_collection.display(highlights="one_only")
+def test_display_snap_key_mismatches(mock_display, notebook_collection):
+    notebook_collection.display(snaps="one_only")
     mock_display.assert_has_calls(
         [
             mock.call(AnyMarkdownWith("### result1")),
@@ -268,11 +268,11 @@ def test_display_highlight_key_mismatches(mock_display, notebook_collection):
             mock.call(AnyMarkdownWith("<hr>")),
             mock.call(AnyMarkdownWith("### result2")),
             mock.call(AnyMarkdownWith("#### one_only")),
-            mock.call("No highlight available for one_only"),
+            mock.call("No snap available for one_only"),
         ]
     )
 
 
-def test_display_missing_highlight_error(notebook_collection):
+def test_display_missing_snap_error(notebook_collection):
     with pytest.raises(ScrapbookException):
-        notebook_collection.display(highlights="one_only", raise_error=True)
+        notebook_collection.display(snaps="one_only", raise_error=True)
