@@ -100,7 +100,7 @@ def sketch(name, obj):
     More usefully, you can copy snaps from earlier executions to re-display the object in the current notebook.
 
         nb = sb.read_notebook('notebook.ipynb')
-        nb.copy_highlight("sharable_png")
+        nb.resketch("sharable_png")
 
     Parameters
     ----------
