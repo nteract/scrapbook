@@ -1,3 +1,5 @@
+<img width="616" alt="scrapbook logo" src="https://user-images.githubusercontent.com/836375/52512549-31260f00-2bba-11e9-9556-515ba5ff0b4b.png">
+
 <!---(binder links generated at https://mybinder.readthedocs.io/en/latest/howto/badges.html and compressed at https://tinyurl.com) -->
 
 [![Build Status](https://travis-ci.org/nteract/scrapbook.svg?branch=master)](https://travis-ci.org/nteract/scrapbook)
