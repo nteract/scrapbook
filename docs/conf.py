@@ -79,7 +79,7 @@ html_theme = "alabaster"
 #
 
 html_theme_options = {
-    "logo": "",
+    "logo": "images/scrapbook-logo.png",
     "description": "A library for recording a notebook's data values and reading these recorded data values at a later time",
     "github_button": True,
     "github_user": "nteract",
