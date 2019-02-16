@@ -24,6 +24,7 @@ local_path = os.path.dirname(__file__)
 # Fix for tox which manipulates execution pathing
 if not local_path:
     local_path = "."
+here = path.abspath(path.dirname(__file__))
 
 
 def version():
@@ -34,47 +35,46 @@ def version():
     raise ValueError("No version found in scrapbook/version.py")
 
 
-req_path = os.path.join(os.path.dirname("__file__"), "requirements.txt")
-required = [req.strip() for req in read(req_path).splitlines() if req.strip()]
+def read_reqs(fname):
+    req_path = os.path.join(here, fname)
+    return [req.strip() for req in read(req_path).splitlines() if req.strip()]
 
-test_req_path = os.path.join(os.path.dirname("__file__"), "requirements-dev.txt")
-test_required = [req.strip() for req in read(test_req_path).splitlines() if req.strip()]
-extras_require = {"test": test_required, "dev": test_required}
+dev_reqs = read_reqs('requirements-dev.txt')
+extras_require = {"test": dev_reqs, "dev": dev_reqs}
 
 pip_too_old = False
 pip_message = ""
 
-try:
-    import pip
+# Tox has a weird issue where it can't import pip from it's virtualenv when skipping normal installs
+if not bool(int(os.environ.get('SKIP_PIP_CHECK', 0))):
+    pip_too_old = False
+    pip_message = ''
+    try:
+        import pip
 
-    pip_version = tuple([int(x) for x in pip.__version__.split(".")[:3]])
-    pip_too_old = pip_version < (9, 0, 1)
-    if pip_too_old:
-        # pip is too old to handle IPython deps gracefully
-        pip_message = (
-            "Your pip version is out of date. Papermill requires pip >= 9.0.1. \n"
-            "pip {} detected. Please install pip >= 9.0.1.".format(pip.__version__)
-        )
-except ImportError:
-    pip_message = (
-        "No pip detected; we were unable to import pip. \n"
-        "To use papermill, please install pip >= 9.0.1."
-    )
-except Exception:
-    pass
+        pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
+        pip_too_old = pip_version < (9, 0, 1)
+        if pip_too_old:
+            # pip is too old to handle IPython deps gracefully
+            pip_message = (
+                'Your pip version is out of date. Papermill requires pip >= 9.0.1. \n'
+                'pip {} detected. Please install pip >= 9.0.1.'.format(pip.__version__)
+            )
+    except Exception:
+        # We only want to optimistically report old versions
+        pass
 
-if pip_message:
-    print(pip_message, file=sys.stderr)
-    sys.exit(1)
+    if pip_message:
+        print(pip_message, file=sys.stderr)
+        sys.exit(1)
 
 
 # Get the long description from the README file
-here = path.abspath(path.dirname(__file__))
 with open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="scrapbook",
+    name="nteract-scrapbook",
     version=version(),
     description="A library for recording and reading data in Jupyter and nteract Notebooks",
     author="nteract contributors",
@@ -86,9 +86,10 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/nteract/scrapbook",
     packages=["scrapbook"],
-    install_requires=required,
+    install_requires=read_reqs('requirements.txt'),
     extras_require=extras_require,
     project_urls={
+        "Documentation": "https://nteract-scrapbook.readthedocs.io",
         "Funding": "https://nteract.io",
         "Source": "https://github.com/nteract/scrapbook/",
         "Tracker": "https://github.com/nteract/scrapbook/issues",

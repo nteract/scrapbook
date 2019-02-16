@@ -67,6 +67,7 @@ class DataTranslatorRegistry(collections.MutableMapping):
         """
         self._translators = {}
 
+    # TODO: Add name
     def load_data(self, storage_type, scrap):
         """
         Finds the register for the given storage_type and loads the scrap into
@@ -86,6 +87,7 @@ class DataTranslatorRegistry(collections.MutableMapping):
             )
         return loader.load(scrap)
 
+    # TODO: Add name
     def translate_data(self, storage_type, scrap):
         """
         Finds the register for the given storage_type and translates the scrap into

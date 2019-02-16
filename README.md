@@ -22,6 +22,12 @@ Two new names for information are introduced in scrapbook:
   or UI message which encapsulate information but do not store the underlying
   data.
 
+## Installation
+
+```
+pip install nteract-scrapbook
+```
+
 ## Use Case
 
 Notebook users may wish to record data produced during a notebook execution.

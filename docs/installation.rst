@@ -8,4 +8,4 @@ From the command line:
 
 .. code-block:: bash
 
-   pip install scrapbook
+   pip install nteract-scrapbook
