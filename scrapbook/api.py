@@ -19,7 +19,7 @@ from .models import Notebook, Scrapbook, GLUE_OUTPUT_PREFIX
 from .translators import registry as translator_registry
 
 
-def glue(name, scrap, storage=None):
+def glue(name, scrap, format=None, display=False):
     """
     Records a scrap (data value) in the given notebook cell.
 
@@ -27,7 +27,7 @@ def glue(name, scrap, storage=None):
     output notebook.
 
     The storage format of the scraps is implied by the value type any registered
-    data translators, but can be overwritten by setting the `storage` argument
+    data translators, but can be overwritten by setting the `format` argument
     to a particular translator's registered name (e.g. `"json"`).
 
     This data is persisted by generating a display output with a special media
@@ -73,50 +73,28 @@ def glue(name, scrap, storage=None):
         else:
             # This may be more complex in the future
             storage = "json"
-    data = {
-        GLUE_OUTPUT_PREFIX
-        + storage: {name: translator_registry.translate_data(storage, scrap)}
-    }
 
-    # IPython.display.display takes a tuple of objects as first parameter
-    # `http://ipython.readthedocs.io/en/stable/api/generated/IPython.display.html#IPython.display.display`
-    ip_display(data, raw=True)
+    # Only store data that can be stored (purely display scraps can skip)
+    if storage != "display":
+        data = {
+            GLUE_OUTPUT_PREFIX + storage: {
+                name: translator_registry.translate_data(storage, scrap)
+            }
+        }
+        metadata = {"scrapbook": dict(name=name)}
+        # IPython.display.display takes a tuple of objects as first parameter
+        # `http://ipython.readthedocs.io/en/stable/api/generated/IPython.display.html#IPython.display.display`
+        ip_display(data, metadata=metadata, raw=True)
 
-
-def sketch(name, obj):
-    """
-    Display a named snap (visible display output) in a retrievable manner.
-    Unlike `glue` this is intended to generate a snap for notebook interfaces to render.
-
-    Example
-    -------
-
-        sb.sketch("hello", "Hello World")
-        sb.sketch("sharable_png", IPython.display.Image(filename=get_fixture_path("sharable.png")))
-
-    Like scraps these can be retrieved at a later time, though they don't cary
-    any actual data, just the display result of some object.
-
-        nb = sb.read_notebook('notebook.ipynb')
-        nb.snaps
-
-    More usefully, you can copy snaps from earlier executions to re-display the
-    object in the current notebook.
-
-        nb = sb.read_notebook('notebook.ipynb')
-        nb.resketch("sharable_png")
-
-    Parameters
-    ----------
-    name : str
-        Name of the output.
-    obj : object
-        An object that can be displayed in the notebook.
-
-    """
-    data, metadata = IPython.core.formatters.format_display_data(obj)
-    metadata["scrapbook"] = dict(name=name)
-    ip_display(data, metadata=metadata, raw=True)
+    # Only display data that is marked for display
+    if display:
+        include_displays = None
+        if isinstance(display, (list, tuple)):
+            include_displays = display
+        data, metadata = IPython.core.formatters.format_display_data(
+            obj, include=include_displays)
+        metadata["scrapbook"] = dict(name=name)
+        ip_display(data, metadata=metadata, raw=True)
 
 
 def read_notebook(path):

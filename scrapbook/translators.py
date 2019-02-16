@@ -67,15 +67,16 @@ class DataTranslatorRegistry(collections.MutableMapping):
         """
         self._translators = {}
 
-    # TODO: Add name
-    def load_data(self, storage_type, scrap):
+    def load_data(self, name, format, scrap):
         """
         Finds the register for the given storage_type and loads the scrap into
         a JSON or string object.
 
         Parameters
         ----------
-        storage_type: str
+        name: str
+            Name of the data object.
+        format: str
             Name of the mime subtype parsed by the translator.
         scrap: obj
             Object to be converted from JSON or string format to the original value.
@@ -83,18 +84,19 @@ class DataTranslatorRegistry(collections.MutableMapping):
         loader = self._translators.get(storage_type)
         if not loader:
             raise ScrapbookException(
-                'No translator found for "{}" data type!'.format(storage_type)
+                'No translator found for "{}" data type!'.format(format)
             )
         return loader.load(scrap)
 
-    # TODO: Add name
-    def translate_data(self, storage_type, scrap):
+    def translate_data(self, name, storage_type, scrap):
         """
         Finds the register for the given storage_type and translates the scrap into
         an object of the translator output type.
 
         Parameters
         ----------
+        name: str
+            Name of the data object.
         storage_type: str
             Name of the mime subtype parsed by the translator.
         scrap: obj
