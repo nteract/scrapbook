@@ -158,10 +158,10 @@ class TextEncoder(object):
 
 class ArrowDataframeEncoder(object):
     def encode(self, scrap, **kwargs):
-        pass  # TODO: Implement
+        pass  # Implement eventually
 
     def decode(self, scrap, **kwargs):
-        pass  # TODO: Implement
+        pass  # Implement eventually
 
 
 registry = DataEncoderRegistry()
