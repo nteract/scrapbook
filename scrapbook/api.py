@@ -15,23 +15,23 @@ from IPython.display import display as ip_display
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
 
-from .models import Notebook, Scrapbook, GLUE_OUTPUT_PREFIX
-from .translators import registry as translator_registry
+from .models import Notebook, Scrapbook, Scrap, GLUE_OUTPUT_PREFIX, scrap_to_data_output
+from .encoders import registry as encoder_registry
 
 
-def glue(name, scrap, format=None, display=False):
+def glue(name, scrap, encoder=None, display=False):
     """
     Records a scrap (data value) in the given notebook cell.
 
     The scrap (recorded value) can be retrieved during later inspection of the
     output notebook.
 
-    The storage format of the scraps is implied by the value type any registered
-    data translators, but can be overwritten by setting the `format` argument
-    to a particular translator's registered name (e.g. `"json"`).
+    The data type of the scraps is implied by the value type of any of the
+    registered data encoders, but can be overwritten by setting the `encoder`
+    argument to a particular encoder's registered name (e.g. `"json"`).
 
     This data is persisted by generating a display output with a special media
-    type identifying the content storage format and data. These outputs are not
+    type identifying the content storage encoder and data. These outputs are not
     visible in notebook rendering but still exist in the document. Scrapbook
     then can rehydrate the data associated with the notebook in the future by
     reading these cell outputs.
@@ -59,27 +59,34 @@ def glue(name, scrap, format=None, display=False):
         The value to record.
     storage: str (optional)
         The data protocol name to respect in persisting data
+    display: any (optional)
+        An indicator for ...
     """
 
     # TODO: Implement the cool stuff. Remote storage indicators?!? Maybe remote media type?!?
     # TODO: Make this more modular
     # TODO: Use translators to determine best storage type
     # ...
-    if not storage:
+    if not encoder:
         if isinstance(scrap, string_types):
-            storage = "unicode"
+            encoder = "text"
         elif isinstance(scrap, (list, dict)):
-            storage = "json"
+            encoder = "json"
         else:
             # This may be more complex in the future
-            storage = "json"
+            encoder = "json"
+
+    # TODO: default to 'display' encoder when encoder is None and object is a display object type?
+    if display is None:
+        display = encoder == "display"
 
     # Only store data that can be stored (purely display scraps can skip)
-    if storage != "display":
+    if encoder != "display":
         data = {
-            GLUE_OUTPUT_PREFIX + storage: {
-                name: translator_registry.translate_data(storage, scrap)
-            }
+            GLUE_OUTPUT_PREFIX
+            + encoder: scrap_to_data_output(
+                encoder_registry.encode(Scrap(name, scrap, encoder))
+            )
         }
         metadata = {"scrapbook": dict(name=name)}
         # IPython.display.display takes a tuple of objects as first parameter
@@ -92,7 +99,8 @@ def glue(name, scrap, format=None, display=False):
         if isinstance(display, (list, tuple)):
             include_displays = display
         data, metadata = IPython.core.formatters.format_display_data(
-            obj, include=include_displays)
+            scrap, include=include_displays
+        )
         metadata["scrapbook"] = dict(name=name)
         ip_display(data, metadata=metadata, raw=True)
 

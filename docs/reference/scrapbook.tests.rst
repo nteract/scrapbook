@@ -12,6 +12,14 @@ scrapbook.tests.test\_api module
     :undoc-members:
     :show-inheritance:
 
+scrapbook.tests.test\_encoders module
+-------------------------------------
+
+.. automodule:: scrapbook.tests.test_encoders
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 scrapbook.tests.test\_notebooks module
 --------------------------------------
 
@@ -24,14 +32,6 @@ scrapbook.tests.test\_scrapbooks module
 ---------------------------------------
 
 .. automodule:: scrapbook.tests.test_scrapbooks
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-scrapbook.tests.test\_translators module
-----------------------------------------
-
-.. automodule:: scrapbook.tests.test_translators
     :members:
     :undoc-members:
     :show-inheritance:
