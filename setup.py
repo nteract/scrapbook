@@ -40,18 +40,18 @@ def read_reqs(fname):
     return [req.strip() for req in read(req_path).splitlines() if req.strip()]
 
 
-s3_reqs = ["papermill[s3]"]
-azure_reqs = ["papermill[azure]"]
-gcs_reqs = ["papermill[gcs]"]
-all_reqs = ["papermill[all]"]
-dev_reqs = read_reqs("requirements-dev.txt") + all_reqs
+reqs_s3 = ["papermill[s3]"]
+reqs_azure = ["papermill[azure]"]
+reqs_gcs = ["papermill[gcs]"]
+reqs_all = ["papermill[all]"]
+reqs_dev = read_reqs("requirements-dev.txt") + reqs_all
 extras_require = {
-    "test": dev_reqs,
-    "dev": dev_reqs,
-    "all": all_reqs,
-    "s3": s3_reqs,
-    "azure": azure_reqs,
-    "gcs": gcs_reqs,
+    "test": reqs_dev,
+    "dev": reqs_dev,
+    "all": reqs_all,
+    "s3": reqs_s3,
+    "azure": reqs_azure,
+    "gcs": reqs_gcs,
 }
 
 # Tox has a weird issue where it can't import pip from it's virtualenv when skipping normal installs

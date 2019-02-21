@@ -15,7 +15,7 @@ from IPython.display import display as ip_display
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
 
-from .models import Notebook, Scrapbook, Scrap, GLUE_OUTPUT_PREFIX, scrap_to_data_output
+from .models import Notebook, Scrapbook, Scrap, GLUE_OUTPUT_PREFIX, scrap_to_payload
 from .encoders import registry as encoder_registry
 
 
@@ -84,7 +84,7 @@ def glue(name, scrap, encoder=None, display=False):
     if encoder != "display":
         data = {
             GLUE_OUTPUT_PREFIX
-            + encoder: scrap_to_data_output(
+            + encoder: scrap_to_payload(
                 encoder_registry.encode(Scrap(name, scrap, encoder))
             )
         }

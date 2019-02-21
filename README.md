@@ -13,6 +13,9 @@
 **scrapbook** is a library for recording a notebook’s data values and generated visual
 content as "scraps". These recorded scraps can be read at a future time.
 
+## Python Version Support
+
+This library will support python 2.7 and 3.5+ until end-of-life for python 2 in 2020. After which python 2 support will halt and only 3.x version will be maintained.
 
 ## Models
 
@@ -32,7 +35,7 @@ The scrap model houses a few key attributes in a tuple. Namely:
 - **name**: The name of the scrap
 - **data**: Any data captured by the scrapbook api call
 - **encoder**: The name of the encoder used to encode/decode data to/from the notebook
-- **display**: Any display data used by ipython to display visual content
+- **display**: Any display data used by IPython to display visual content
 
 ## Installation
 
@@ -113,7 +116,7 @@ This can be done by toggling the `display` argument.
 sb.glue("hello", "Hello World", display=True)
 ```
 
-The call will both save the data and the display attributes of the Scrap object,
+The call will save the data and the display attributes of the Scrap object,
 making it visible as well as encoding the original data. This leans on the
 `IPython.core.formatters.format_display_data` function to translate the data
 object into a display and metadata dict for the notebook kernel to parse.
@@ -145,7 +148,7 @@ with the ability to extract scrapbook scraps.
 nb = sb.read_notebook('notebook.ipynb')
 ```
 
-This Notebook object adhears to the [nbformat's json schema](
+This Notebook object adheres to the [nbformat's json schema](
 https://github.com/jupyter/nbformat/blob/master/nbformat/v4/nbformat.v4.schema.json),
 allowing for access to its required fields.
 

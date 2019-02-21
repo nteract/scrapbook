@@ -42,13 +42,13 @@ Scrap = namedtuple("Scrap", ["name", "data", "encoder", "display"])
 Scrap.__new__.__defaults__ = (None,) * len(Scrap._fields)
 
 
-def scrap_to_data_output(scrap):
+def scrap_to_payload(scrap):
     """Translates scrap data to the output format"""
     # Apply new keys here as needed (like `ref`)
     return {"name": scrap.name, "data": scrap.data}
 
 
-def output_to_data_scrap(output_payload, encoder):
+def payload_to_scrap(output_payload, encoder):
     """Translates data output format to a scrap"""
     return Scrap(
         name=output_payload.get("name"),
@@ -171,7 +171,7 @@ class Notebook(object):
             scrap = self._extract_papermill_output_data(sig, payload)
             if scrap is None and sig.startswith(GLUE_OUTPUT_PREFIX):
                 encoder = sig.split(GLUE_OUTPUT_PREFIX, 1)[1]
-                scrap = encoder_registry.decode(output_to_data_scrap(payload, encoder))
+                scrap = encoder_registry.decode(payload_to_scrap(payload, encoder))
             if scrap:
                 output_scraps[scrap.name] = scrap
 
@@ -376,7 +376,7 @@ class Notebook(object):
         else:
             scrap = self.scraps[name]
             if scrap.data is not None:
-                data = {GLUE_OUTPUT_PREFIX + scrap.encoder: scrap_to_data_output(scrap)}
+                data = {GLUE_OUTPUT_PREFIX + scrap.encoder: scrap_to_payload(scrap)}
                 metadata = {"scrapbook": dict(name=name)}
                 # Call raw display function
                 ip_display(data, metadata=metadata, raw=True)
