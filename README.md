@@ -10,22 +10,46 @@
 
 # scrapbook
 
-**scrapbook** is a library for recording a notebook’s data values (scraps) and
-generated visual content (snaps). These recorded scraps and snaps can be read
-at a future time.
+**scrapbook** is a library for recording a notebook’s data values and generated visual
+content as "scraps". These recorded scraps can be read at a future time.
 
-Two new names for information are introduced in scrapbook:
+## Python Version Support
 
-- **scraps**: serializable data values such as strings, lists of objects, pandas
-  dataframes, or data table references.
-- **snaps**: named displays of information such as a generated image, plot,
-  or UI message which encapsulate information but do not store the underlying
-  data.
+This library will support python 2.7 and 3.5+ until end-of-life for python 2 in 2020. After which python 2 support will halt and only 3.x version will be maintained.
+
+## Models
+
+A few new names for information are introduced in scrapbook:
+
+- **scraps**: serializable data values and visualizations such as strings, lists of
+  objects, pandas dataframes, charts, images, or data references.
+- **notebook**: a wrapped nbformat notebook object with extra methods for interacting
+  with scraps.
+- **scrapbook**: a collection of notebooks with an interface for asking questions of
+  the collection.
+
+### Scrap
+
+The scrap model houses a few key attributes in a tuple. Namely:
+
+- **name**: The name of the scrap
+- **data**: Any data captured by the scrapbook api call
+- **encoder**: The name of the encoder used to encode/decode data to/from the notebook
+- **display**: Any display data used by IPython to display visual content
 
 ## Installation
 
-```
+To start, one can install via pip.
+
+``` {.sourceCode .bash}
 pip install nteract-scrapbook
+```
+
+For all optional io dependencies, you can specify individual bundles
+like `s3`, or `azure` -- or use `all`
+
+``` {.sourceCode .bash}
+pip install nteract-scrapbook[all]
 ```
 
 ## Use Case
@@ -36,9 +60,8 @@ another notebook as input.
 
 Namely scrapbook lets you:
 
-- **persist** data (scraps) in a notebook
-- **sketch** named displays (snaps) in notebooks
-- **recall** any persisted scrap of data or displayed snap
+- **persist** data and displays (scraps) in a notebook
+- **recall** any persisted scrap of data
 - **summarize collections** of notebooks
 
 ## API Calls
@@ -47,12 +70,14 @@ Scrapbook adds a few basic api commands which enable saving and retrieving data.
 
 ### `glue` to persist scraps
 
-Records a `scrap` (data value) in the given notebook cell.
+Records a `scrap` (data or display value) in the given notebook cell.
 
 The `scrap` (recorded value) can be retrieved during later inspection of the
 output notebook.
 
 ```python
+import scrapbook as sb
+
 sb.glue("hello", "world")
 sb.glue("number", 123)
 sb.glue("some_list", [1, 3, 5])
@@ -69,67 +94,105 @@ nb.scraps
 ```
 
 **scrapbook** will imply the storage format by the value type of any registered
-data translators. Alternatively, the implied storage format can be overwritten by
-setting the `storage` argument to the registered name (e.g. `"json"`) of a
-particular translator.
+data encoders. Alternatively, the implied encoding format can be overwritten by
+setting the `encoder` argument to the registered name (e.g. `"json"`) of a
+particular encoder.
 
 This data is persisted by generating a display output with a special media type
-identifying the content storage format and data. These outputs are not visible in
-notebook rendering but still exist in the document. Scrapbook then can rehydrate
-the data associated with the notebook in the future by reading these cell outputs.
+identifying the content encoding format and data. These outputs are not always
+visible in notebook rendering but still exist in the document. Scrapbook can
+then rehydrate the data associated with the notebook in the future by reading
+these cell outputs.
 
-### `sketch` to save _display output_
+#### With _display output_
 
-Display a named snap (visible display output) in a retrievable manner.
+To display a named scrap with visible display outputs, you need to indicate that
+the scrap is directly renderable.
 
-Unlike `glue`, `sketch` is intended to generate a visible display output
-for notebook interfaces to render.
-
-```python
-# record an image highlight
-sb.sketch("sharable_png", IPython.display.Image(filename=get_fixture_path("sharable.png")))
-# record a UI message highlight
-sb.sketch("hello", "Hello World")
-```
-
-Like scraps, these can be retrieved at a later time. Unlike scraps, highlights
-do not carry any actual underlying data, keeping just the display result of some
-object.
+This can be done by toggling the `display` argument.
 
 ```python
-nb = sb.read_notebook('notebook.ipynb')
-# Returns the dict of name -> snap pairs saved in `nb`
-nb.snaps
+# record a UI message along with the input string
+sb.glue("hello", "Hello World", display=True)
 ```
 
-More usefully, you can copy snaps from earlier notebook executions to re-display
-the object in the current notebook.
+The call will save the data and the display attributes of the Scrap object,
+making it visible as well as encoding the original data. This leans on the
+`IPython.core.formatters.format_display_data` function to translate the data
+object into a display and metadata dict for the notebook kernel to parse.
+
+Another pattern that can be used is to specify that **only the display data**
+should be saved, and not the original object. This is achieved by setting
+the encoder to be `display`.
 
 ```python
-nb = sb.read_notebook('notebook.ipynb')
-nb.copy_highlight("sharable_png")
+# record an image without the original input object
+sb.glue("sharable_png",
+  IPython.display.Image(filename="sharable.png"),
+  encoder='display'
+)
 ```
+
+Finally the media types that are generated can be controlled by passing
+a list, tuple, or dict object as the display argument.
+
+```python
+sb.glue("media_as_text_only",
+  media_obj,
+  encoder='display',
+  display=('text/plain',) # This passes [text/plain] to format_display_data's include argument
+)
+
+sb.glue("media_without_text",
+  media_obj,
+  encoder='display',
+  display={'exclude': 'text/plain'} # forward to format_display_data's kwargs
+)
+```
+
+Like data scraps, these can be retrieved at a later time be accessing the scrap's
+`display` attribute. Though usually one will just use Notebook's `reglue` method
+(described below).
 
 ### `read_notebook` reads one notebook
 
 Reads a Notebook object loaded from the location specified at `path`.
 You've already seen how this function is used in the above api call examples,
-but essentially this provides a thin wrapper over an `nbformat` notebook object
-with the ability to extract scrapbook scraps and snaps.
+but essentially this provides a thin wrapper over an `nbformat`'s NotebookNode
+with the ability to extract scrapbook scraps.
 
 ```python
 nb = sb.read_notebook('notebook.ipynb')
 ```
 
-The abstraction makes saved content available as a dataframe referencing each
+This Notebook object adheres to the [nbformat's json schema](
+https://github.com/jupyter/nbformat/blob/master/nbformat/v4/nbformat.v4.schema.json),
+allowing for access to its required fields.
+
+```python
+nb.cells # The cells from the notebook
+nb.metadata
+nb.nbformat
+nb.nbformat_minor
+```
+
+There's a few additional methods provided, most of which are outlined in more detail
+below:
+
+```python
+nb.scraps
+nb.reglue
+```
+
+The abstraction also makes saved content available as a dataframe referencing each
 key and source. More of these methods will be made available in later versions.
 
 ```python
-# Produces a data frame with ["name", "value", "type", "filename"] as columns
-nb.scrap_dataframe
+# Produces a data frame with ["name", "data", "encoder", "display", "filename"] as columns
+nb.scrap_dataframe # Warning: This might be a large object if data or display is large
 ```
 
-The Notebook object also has a few legacy functions for backwards compatability
+The Notebook object also has a few legacy functions for backwards compatibility
 with papermill's Notebook object model. As a result, it can be used to read
 papermill execution statistics as well as scrapbook abstractions:
 
@@ -137,13 +200,65 @@ papermill execution statistics as well as scrapbook abstractions:
 nb.cell_timing # List of cell execution timings in cell order
 nb.execution_counts # List of cell execution counts in cell order
 nb.papermill_metrics # Dataframe of cell execution counts and times
+nb.papermill_record_dataframe # Dataframe of notebook records (scraps with only data)
 nb.parameter_dataframe # Dataframe of notebook parameters
 nb.papermill_dataframe # Dataframe of notebook parameters and cell scraps
 ```
 
-The notebook reader relies on [papermill's registered iorw](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
+The notebook reader relies on [papermill's registered iorw](
+https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
 to enable access to a variety of sources such as -- but not limited to -- S3,
 Azure, and Google Cloud.
+
+#### `scraps` provides a name -> scrap lookup
+
+The `scraps` method allows for access to all of the scraps in a particular notebook.
+
+```python
+nb = sb.read_notebook('notebook.ipynb')
+nb.scraps # Prints a dict of all scraps by name
+```
+
+This object has a few additional methods as well for convenient conversion and
+execution.
+
+```python
+nb.scraps.data_scraps # Filters to only scraps with `data` associated
+nb.scraps.data_dict # Maps `data_scraps` to a `name` -> `data` dict
+nb.scraps.display_scraps # Filters to only scraps with `display` associated
+nb.scraps.display_dict # Maps `display_scraps` to a `name` -> `display` dict
+nb.scraps.dataframe # Generates a dataframe with ["name", "data", "encoder", "display"] as columns
+```
+
+These methods allow for simple use-cases to not require digging through model
+abstractions.
+
+#### `reglue` copys a scrap into the current notebook
+
+Using `reglue` one can take any scrap glue'd into one notebook and glue into the
+current one.
+
+```python
+nb = sb.read_notebook('notebook.ipynb')
+nb.reglue("table_scrap") # This copies both data and displays
+```
+
+Any data or display information will be copied verbatim into the currently
+executing notebook as though the user called `glue` again on the original source.
+
+It's also possible to rename the scrap in the process.
+
+```python
+nb.reglue("table_scrap", "old_table_scrap")
+```
+
+And finally if one wishes to try to reglue without checking for existence the
+`raise_on_missing` can be set to just display a message on failure.
+
+```python
+nb.reglue("maybe_missing", raise_on_missing=False)
+# => "No scrap found with name 'maybe_missing' in this notebook"
+```
 
 ### `read_notebooks` reads many notebooks
 
@@ -153,33 +268,47 @@ Reads all notebooks located in a given `path` into a Scrapbook object.
 # create a scrapbook named `book`
 book = sb.read_notebooks('path/to/notebook/collection/')
 # get the underlying notebooks as a list
-book.sorted_notebooks
+book.notebooks # Or `book.values`
+```
+
+The path reuses [papermill's registered `iorw`](
+https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
+to list and read files form various sources, such that non-local urls can load data.
+
+```python
+# create a scrapbook named `book`
+book = sb.read_notebooks('s3://bucket/key/prefix/to/notebook/collection/')
 ```
 
 The Scrapbook (`book` in this example) can be used to recall all scraps across
 the collection of notebooks:
 
 ```python
-book.scraps # Map of {notebook -> {name -> scrap}}
-book.flat_scraps # Map of {name -> scrap}
+book.notebook_scraps # Dict of shape `notebook` -> (`name` -> `scrap`)
+book.scraps # merged dict of shape `name` -> `scrap`
 ```
 
-Or to collect snaps:
+#### `scraps_report` displays a report about collected scraps
+
+The Scrapbook collection can be used to generate a `scraps_report` on all the
+scraps from the collection as a markdown structured output.
 
 ```python
-book.snaps # Map of {notebook -> {name -> snap}}
-book.flat_highlights # Map of {name -> snap}
+book.scraps_report()
 ```
 
-The Scrapbook collection can be used to `display` all the snaps from the
-collection as a markdown structured output as well.
-
-```python
-book.display()
-```
-
-This display can filter on snap names and keys, as well as enable or disable
+This display can filter on scrap and notebook names, as well as enable or disable
 an overall header for the display.
+
+```python
+book.scraps_report(
+  scrap_names=["scrap1", "scrap2"],
+  notebook_names=["result1"], # matches `/notebook/collections/result1.ipynb` pathed notebooks
+  header=False
+)
+```
+
+#### papermill support
 
 Finally the scrapbook has two backwards compatible features for deprecated
 `papermill` capabilities:
@@ -189,40 +318,40 @@ book.papermill_dataframe
 book.papermill_metrics
 ```
 
-These function also relies on [papermill's registered `iorw`](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
-to list and read files form various sources.
+## Encoders
 
-## Storage Formats
-
-Storage formats are accessible by key names to Translator objects registered
-against the `translators.registry` object. To register new data
-translator / loaders simply call:
+Encoders are accessible by key names to Encoder objects registered
+against the `encoders.registry` object. To register new data encoders
+simply call:
 
 ```python
-# add translator to the registry
-registry.register("custom_store_name", MyCustomTranslator())
+from encoder import registry as encoder_registry
+# add encoder to the registry
+encoder_registry.register("custom_encoder_name", MyCustomEncoder())
 ```
 
-The store class must implement two methods, `translate` and `load`:
+The encode class must implement two methods, `encode` and `decode`:
 
 ```python
-class MyCustomTranslator(object):
-    def translate(self, scrap):
-        pass  # TODO: Implement
+class MyCustomEncoder(object):
+    def encode(self, scrap):
+        # scrap.data is any type, usually specific to the encoder name
+        pass  # Return a `Scrap` with `data` type one of [None, list, dict, *six.integer_types, *six.string_types]
 
-    def load(self, scrap):
-        pass  # TODO: Implement
+    def decode(self, scrap):
+        # scrap.data is one of [None, list, dict, *six.integer_types, *six.string_types]
+        pass  # Return a `Scrap` with `data` type as any type, usually specific to the encoder name
 ```
 
-This can read transform scraps into a string representing their contents or
+This can read transform scraps into a json object representing their contents or
 location and load those strings back into the original data objects.
 
-### `unicode`
+### `text`
 
 A basic string storage format that saves data as python strings.
 
 ```python
-sb.glue("hello", "world", "unicode")
+sb.glue("hello", "world", "text")
 ```
 
 ### `json`

@@ -6,26 +6,28 @@ Provides the Notebook wrapper objects for scrapbook
 """
 from __future__ import unicode_literals
 import os
-import operator
+import copy
+import nbformat
 import collections
 import pandas as pd
 
 from six import string_types
+from collections import namedtuple, OrderedDict
 from IPython.display import display as ip_display, Markdown
 
 # We lean on papermill's readers to connect to remote stores
-from papermill.iorw import load_notebook_node
+from papermill.iorw import papermill_io
 
-from .translators import registry as translator_registry
+from .encoders import registry as encoder_registry
 from .exceptions import ScrapbookException
 
 
-GLUE_OUTPUT_PREFIX = "application/scrapbook.scrap+"
-RECORD_OUTPUT_PREFIX = "application/papermill.record+"
-DATA_OUTPUT_PREFIXES = [
-    GLUE_OUTPUT_PREFIX,
-    RECORD_OUTPUT_PREFIX,  # Backwards compatibility
-]
+GLUE_PAYLOAD_PREFIX = "application/scrapbook.scrap"
+GLUE_PAYLOAD_FMT = GLUE_PAYLOAD_PREFIX + ".{encoder}+json"
+RECORD_PAYLOAD_PREFIX = "application/papermill.record"
+SCRAP_PAYLOAD_PREFIXES = set(
+    [GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX]  # Backwards compatibility
+)
 
 
 def merge_dicts(dicts):
@@ -36,17 +38,72 @@ def merge_dicts(dicts):
     return outcome
 
 
+# dataclasses would be nice here...
+Scrap = namedtuple("Scrap", ["name", "data", "encoder", "display"])
+Scrap.__new__.__defaults__ = (None,) * len(Scrap._fields)
+
+
+def scrap_to_payload(scrap):
+    """Translates scrap data to the output format"""
+    # Apply new keys here as needed (like `ref`)
+    return {"name": scrap.name, "data": scrap.data, "encoder": scrap.encoder}
+
+
+def payload_to_scrap(output_payload):
+    """Translates data output format to a scrap"""
+    return Scrap(
+        name=output_payload.get("name"),
+        data=output_payload.get("data"),
+        encoder=output_payload.get("encoder"),
+    )
+
+
+class Scraps(OrderedDict):
+    def __init__(self, *args, **kwargs):
+        super(Scraps, self).__init__(*args, **kwargs)
+
+    @property
+    def data_scraps(self):
+        return OrderedDict([(k, v) for k, v in self.items() if v.data is not None])
+
+    @property
+    def data_dict(self):
+        return {name: scrap.data for name, scrap in self.data_scraps.items()}
+
+    @property
+    def display_scraps(self):
+        return OrderedDict([(k, v) for k, v in self.items() if v.display is not None])
+
+    @property
+    def display_dict(self):
+        return {name: scrap.display for name, scrap in self.display_scraps.items()}
+
+    @property
+    def dataframe(self):
+        """pandas dataframe: dataframe of cell scraps"""
+        return pd.DataFrame(
+            [
+                [scrap.name, scrap.data, scrap.encoder, scrap.display]
+                for scrap in self.values()
+            ],
+            columns=["name", "data", "encoder", "display"],
+        )
+
+
 class Notebook(object):
     """
-    Representation of a notebook.
+    Representation of a notebook. This model is quasi-compatible with the
+    nbformat NotebookNode object in that it support access to the v4
+    required fields from nbformat's json schema. For complete access to
+    normal nbformat operations, use the `node` attribute of this model.
 
     Parameters
     ----------
-    node : `nbformat.NotebookNode`, str
+    node_or_path : `nbformat.NotebookNode`, str
         a notebook object, or a path to a notebook object
     """
 
-    def __init__(self, node_or_path, translators=None):
+    def __init__(self, node_or_path):
         if isinstance(node_or_path, string_types):
             if not node_or_path.endswith(".ipynb"):
                 raise ValueError(
@@ -55,15 +112,36 @@ class Notebook(object):
                     )
                 )
             self.path = node_or_path
-            self.node = load_notebook_node(node_or_path)
+            self.node = nbformat.reads(papermill_io.read(node_or_path), as_version=4)
         else:
             self.path = ""
             self.node = node_or_path
-        self.translators = translators or translator_registry
 
         # Memoized traits
         self._scraps = None
-        self._snaps = None
+        self._outputs = None
+
+    def copy(self):
+        cp = Notebook(self.node.copy())
+        cp.path = self.path
+        return cp
+
+    # nbformat mirroring properties
+    @property
+    def metadata(self):
+        return self.node.metadata
+
+    @property
+    def nbformat_minor(self):
+        return self.node.nbformat_minor
+
+    @property
+    def nbformat(self):
+        return self.node.nbformat
+
+    @property
+    def cells(self):
+        return self.node.cells
 
     @property
     def filename(self):
@@ -78,20 +156,70 @@ class Notebook(object):
     @property
     def parameters(self):
         """dict: parameters stored in the notebook metadata"""
-        return self.node.metadata.get("papermill", {}).get("parameters", {})
+        return self.metadata.get("papermill", {}).get("parameters", {})
+
+    def _extract_papermill_output_data(self, sig, payload):
+        if sig.startswith(RECORD_PAYLOAD_PREFIX):
+            # Fetch '+json' and strip the leading '+'
+            encoder = sig.split(RECORD_PAYLOAD_PREFIX, 1)[1][1:]
+            # First key is the only named payload
+            for name, data in payload.items():
+                return encoder_registry.decode(Scrap(name, data, encoder))
+
+    def _extract_output_data_scraps(self, output):
+        output_scraps = Scraps()
+        for sig, payload in output.get("data", {}).items():
+            # Backwards compatibility for papermill
+            scrap = self._extract_papermill_output_data(sig, payload)
+            if scrap is None and sig.startswith(GLUE_PAYLOAD_PREFIX):
+                scrap = encoder_registry.decode(payload_to_scrap(payload))
+            if scrap:
+                output_scraps[scrap.name] = scrap
+
+        return output_scraps
+
+    def _extract_output_displays(self, output):
+        output_displays = OrderedDict()
+        # Backwards compatibility for papermill
+        for namespace in ["scrapbook", "papermill"]:
+            if namespace in output.get("metadata", {}):
+                output_name = output.metadata[namespace].get("name")
+                if output_name:
+                    output_displays[output_name] = output
+                    break
+
+        return output_displays
 
     def _fetch_scraps(self):
         """Returns a dictionary of the data recorded in a notebook."""
-        scraps = collections.OrderedDict()
-        for cell in self.node.cells:
+        scraps = Scraps()
+
+        for cell in self.cells:
             for output in cell.get("outputs", []):
-                for sig, payload in output.get("data", {}).items():
-                    for prefix in DATA_OUTPUT_PREFIXES:
-                        if sig.startswith(prefix):
-                            data_type = sig.split(prefix, 1)[1]
-                            scraps.update(
-                                self.translators.load_data(data_type, payload)
-                            )
+                output_data_scraps = self._extract_output_data_scraps(output)
+                output_displays = self._extract_output_displays(output)
+
+                # Combine displays with data while trying to preserve ordering
+                output_scraps = Scraps(
+                    [
+                        # Hydrate with output_displays
+                        (
+                            scrap.name,
+                            Scrap(
+                                scrap.name,
+                                scrap.data,
+                                scrap.encoder,
+                                output_displays.get(scrap.name),
+                            ),
+                        )
+                        for scrap in output_data_scraps.values()
+                    ]
+                )
+                for name, display in output_displays.items():
+                    if name not in output_scraps:
+                        output_scraps[name] = Scrap(name, None, "display", display)
+                scraps.update(output_scraps)
+
         return scraps
 
     @property
@@ -101,6 +229,31 @@ class Notebook(object):
             self._scraps = self._fetch_scraps()
         return self._scraps
 
+    def _output_is_scrap(self, output):
+        for namespace in ["scrapbook", "papermill"]:
+            if namespace in output.get("metadata", {}):
+                return True
+        for sig, payload in output.get("data", {}).items():
+            # Backwards compatibility for papermill
+            if any(sig.startswith(prefix) for prefix in SCRAP_PAYLOAD_PREFIXES):
+                return True
+        return False
+
+    def _fetch_raw_outputs(self):
+        outputs = []
+        for cell in self.cells:
+            for output in cell.get("outputs", []):
+                if self._output_is_scrap(output):
+                    outputs.append(output)
+        return outputs
+
+    @property
+    def scrap_outputs(self):
+        """list: a list of outputs associated with papermill found in the notebook"""
+        if self._outputs is None:
+            self._outputs = self._fetch_raw_outputs()
+        return self._outputs
+
     @property
     def cell_timing(self):
         """list: a list of cell execution timings in cell order"""
@@ -109,20 +262,20 @@ class Notebook(object):
             cell.metadata.get("papermill", {}).get("duration", 0.0)
             if cell.get("execution_count")
             else None
-            for cell in self.node.cells
+            for cell in self.cells
         ]
 
     @property
     def execution_counts(self):
         """list: a list of cell execution counts in cell order"""
-        return [cell.get("execution_count") for cell in self.node.cells]
+        return [cell.get("execution_count") for cell in self.cells]
 
     @property
     def papermill_metrics(self):
         """pandas dataframe: dataframe of cell execution counts and times"""
         df = pd.DataFrame(columns=["filename", "cell", "value", "type"])
 
-        for i, cell in enumerate(self.node.cells):
+        for i, cell in enumerate(self.cells):
             execution_count = cell.get("execution_count")
             if not execution_count:
                 continue
@@ -146,11 +299,19 @@ class Notebook(object):
     @property
     def scrap_dataframe(self):
         """pandas dataframe: dataframe of cell scraps"""
+        df = self.scraps.dataframe
+        df["filename"] = self.filename
+        return df
+
+    @property
+    def papermill_record_dataframe(self):
+        """pandas dataframe: dataframe of cell scraps"""
         # Meant for backwards compatibility to papermill's dataframe method
         return pd.DataFrame(
             [
-                [name, self.scraps[name], "record", self.filename]
+                [name, self.scraps[name].data, "record", self.filename]
                 for name in sorted(self.scraps.keys())
+                if self.scraps[name].data is not None
             ],
             columns=["name", "value", "type", "filename"],
         )
@@ -159,52 +320,79 @@ class Notebook(object):
     def papermill_dataframe(self):
         """pandas dataframe: dataframe of notebook parameters and cell scraps"""
         # Meant for backwards compatibility to papermill's dataframe method
-        return self.parameter_dataframe.append(self.scrap_dataframe, ignore_index=True)
+        return self.parameter_dataframe.append(
+            self.papermill_record_dataframe, ignore_index=True
+        )
 
-    def _fetch_snaps(self):
-        outputs = collections.OrderedDict()
-        for cell in self.node.cells:
-            for output in cell.get("outputs", []):
-                if "scrapbook" in output.get("metadata", {}):
-                    output_name = output.metadata.scrapbook.get("name")
-                    if output_name:
-                        outputs[output_name] = output
-                # Backwards compatibility
-                if "papermill" in output.get("metadata", {}):
-                    output_name = output.metadata.papermill.get("name")
-                    if output_name:
-                        outputs[output_name] = output
-        return outputs
+    def _output_name(self, output):
+        # Check metadata
+        for namespace in ["scrapbook", "papermill"]:
+            if namespace in output.get("metadata", {}):
+                output_name = output.metadata[namespace].get("name")
+                if output_name:
+                    return output_name
 
-    @property
-    def snaps(self):
-        """dict: a dictionary of the notebook display outputs."""
-        if self._snaps is None:
-            self._snaps = self._fetch_snaps()
-        return self._snaps
+        # Fallback to data
+        for sig, payload in output.get("data", {}).items():
+            for name in (payload or {}).keys():
+                return name
 
-    def resketch(self, name, raise_error=True):
+    def _rename_output(self, old_name, new_name, output):
+        renamed = copy.copy(output)
+        # Strip old metadata name
+        renamed.metadata.pop("papermill", None)
+        renamed.metadata["scrapbook"] = output.metadata.get("scrapbook", {})
+        renamed.metadata["scrapbook"]["name"] = new_name
+
+        # Update any data available
+        if "data" in output and old_name in output["data"]:
+            renamed["data"] = copy.copy(renamed["data"])
+            renamed["data"][new_name] = renamed["data"].pop(old_name)
+
+        return renamed
+
+    def reglue(self, name, new_name=None, raise_on_missing=True):
         """
         Display output from a named source of the notebook.
 
         Parameters
         ----------
         name : str
-            name of sketched (snap) object
+            name of scrap object
+        new_name : str
+            replacement name for scrap
         raise_error : bool
             indicator for if the resketch should print a message or error on missing snaps
 
         """
-        if name not in self.snaps:
-            if raise_error:
+        if name not in self.scraps:
+            if raise_on_missing:
                 raise ScrapbookException(
-                    "Frame '{}' is not available in this notebook.".format(name)
+                    "Scrap '{}' is not available in this notebook.".format(name)
                 )
             else:
-                ip_display("No snap available for {}".format(name))
+                ip_display(
+                    "No scrap found with name '{}' in this notebook".format(name)
+                )
         else:
-            output = self.snaps[name]
-            ip_display(output.data, metadata=output.metadata, raw=True)
+            scrap = self.scraps[name]
+            if scrap.data is not None:
+                data = {
+                    GLUE_PAYLOAD_FMT.format(encoder=scrap.encoder): scrap_to_payload(
+                        scrap
+                    )
+                }
+                metadata = {"scrapbook": dict(name=name)}
+                # Call raw display function
+                ip_display(data, metadata=metadata, raw=True)
+
+        for output in self.scrap_outputs:
+            out_name = self._output_name(output)
+            if out_name == name:
+                # Always rename to update stale metadata structures
+                output = self._rename_output(name, new_name or name, output)
+                # Call raw display function on output
+                ip_display(output.data, metadata=output.metadata, raw=True)
 
 
 class Scrapbook(collections.MutableMapping):
@@ -213,7 +401,7 @@ class Scrapbook(collections.MutableMapping):
     """
 
     def __init__(self):
-        self._notebooks = collections.OrderedDict()
+        self._notebooks = OrderedDict()
 
     def __setitem__(self, key, value):
         # If notebook is a path str then load the notebook.
@@ -261,66 +449,48 @@ class Scrapbook(collections.MutableMapping):
     @property
     def notebooks(self):
         """list: a sorted list of associated notebooks."""
-        return map(
-            operator.itemgetter(1),
-            sorted(self._notebooks.items(), key=operator.itemgetter(0)),
-        )
+        return self.values()
+
+    @property
+    def notebook_scraps(self):
+        """dict: a dictionary of the notebook scraps by key."""
+        return OrderedDict([(key, nb.scraps) for key, nb in self._notebooks.items()])
 
     @property
     def scraps(self):
-        """dict: a dictionary of the notebook scraps by key."""
-        return {key: nb.scraps for key, nb in self._notebooks.items()}
-
-    @property
-    def flat_scraps(self):
         """dict: a dictionary of the merged notebook scraps."""
         return merge_dicts(nb.scraps for nb in self.notebooks)
 
-    @property
-    def snaps(self):
-        """dict: a dictionary of the notebook snap outputs by key."""
-        return {key: nb.snaps for key, nb in self._notebooks.items()}
-
-    @property
-    def flat_snaps(self):
-        """dict: a dictionary of the merged notebook snap outputs."""
-        return merge_dicts(nb.snaps for nb in self.notebooks)
-
-    def display(self, snaps=None, keys=None, header=True, raise_error=False):
+    def scraps_report(self, scrap_names=None, notebook_names=None, header=True):
         """
-        Display snaps as markdown structed outputs.
+        Display scraps as markdown structed outputs.
 
         Parameters
         ----------
-        snaps : str or iterable[str] (optional)
-            the snaps to display as outputs
-        keys : str or iterable[str] (optional)
-            notebook keys to use in framing the scrapbook displays
+        scrap_names : str or iterable[str] (optional)
+            the scraps to display as reported outputs
+        notebook_names : str or iterable[str] (optional)
+            notebook names to use in filtering on scraps to report
         header : bool (default: True)
-            indicator for if the snaps should have headers
-        raise_error : bool (default: False)
-            flag for if errors should be raised on missing output_names
+            indicator for if the scraps should render with a header
         """
-        if isinstance(snaps, string_types):
-            snaps = [snaps]
+        if isinstance(scrap_names, string_types):
+            scrap_names = [scrap_names]
+        scrap_names = set(scrap_names or [])
 
-        if keys is None:
-            keys = self._notebooks.keys()
-        elif isinstance(keys, string_types):
-            keys = [keys]
+        if notebook_names is None:
+            notebook_names = self._notebooks.keys()
+        elif isinstance(notebook_names, string_types):
+            notebook_names = [notebook_names]
 
-        for i, k in enumerate(keys):
+        for i, nb_name in enumerate(notebook_names):
+            notebook = self[nb_name]
             if header:
                 if i > 0:
                     ip_display(Markdown("<hr>"))  # tag between outputs
-                ip_display(Markdown("### {}".format(k)))
+                ip_display(Markdown("### {}".format(nb_name)))
 
-            if snaps is None:
-                names = self[k].snaps.keys()
-            else:
-                names = snaps
-
-            for name in names:
+            for name in scrap_names or notebook.scraps.display_scraps.keys():
                 if header:
                     ip_display(Markdown("#### {}".format(name)))
-                self[k].resketch(name, raise_error=raise_error)
+                notebook.reglue(name, raise_on_missing=False)

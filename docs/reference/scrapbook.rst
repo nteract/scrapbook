@@ -1,6 +1,13 @@
 scrapbook package
 =================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    scrapbook.tests
+
 Submodules
 ----------
 
@@ -8,6 +15,14 @@ scrapbook.api module
 --------------------
 
 .. automodule:: scrapbook.api
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+scrapbook.encoders module
+-------------------------
+
+.. automodule:: scrapbook.encoders
     :members:
     :undoc-members:
     :show-inheritance:
@@ -36,10 +51,10 @@ scrapbook.models module
     :undoc-members:
     :show-inheritance:
 
-scrapbook.translators module
-----------------------------
+scrapbook.version module
+------------------------
 
-.. automodule:: scrapbook.translators
+.. automodule:: scrapbook.version
     :members:
     :undoc-members:
     :show-inheritance:

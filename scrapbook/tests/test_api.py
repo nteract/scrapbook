@@ -8,54 +8,84 @@ import collections
 from IPython.display import Image
 
 from . import get_fixture_path
-from ..models import GLUE_OUTPUT_PREFIX
-from ..api import glue, sketch
+from ..models import GLUE_PAYLOAD_FMT
+from ..api import glue
 
 
 @pytest.mark.parametrize(
-    "name,scrap,storage,data",
+    "name,scrap,encoder,data,metadata",
     [
         (
             "foobarbaz",
             {"foo": "bar", "baz": 1},
             None,
-            {GLUE_OUTPUT_PREFIX + "json": {"foobarbaz": {"foo": "bar", "baz": 1}}},
+            {
+                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                    "name": "foobarbaz",
+                    "data": {"foo": "bar", "baz": 1},
+                    "encoder": "json",
+                }
+            },
+            {"scrapbook": {"name": "foobarbaz"}},
         ),
         (
             "foobarbaz",
             '{"foo":"bar","baz":1}',
             None,
-            {GLUE_OUTPUT_PREFIX + "unicode": {"foobarbaz": '{"foo":"bar","baz":1}'}},
+            {
+                GLUE_PAYLOAD_FMT.format(encoder="text"): {
+                    "name": "foobarbaz",
+                    "data": '{"foo":"bar","baz":1}',
+                    "encoder": "text",
+                }
+            },
+            {"scrapbook": {"name": "foobarbaz"}},
         ),
         (
             "foobarbaz",
             '{"foo":"bar","baz":1}',
             "json",
-            {GLUE_OUTPUT_PREFIX + "json": {"foobarbaz": {"foo": "bar", "baz": 1}}},
+            {
+                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                    "name": "foobarbaz",
+                    "data": {"foo": "bar", "baz": 1},
+                    "encoder": "json",
+                }
+            },
+            {"scrapbook": {"name": "foobarbaz"}},
         ),
         (
             "foobarbaz",
             # Pick something we don't match normally
             collections.OrderedDict({"foo": "bar", "baz": 1}),
             "json",
-            {GLUE_OUTPUT_PREFIX + "json": {"foobarbaz": {"foo": "bar", "baz": 1}}},
+            {
+                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                    "name": "foobarbaz",
+                    "data": {"foo": "bar", "baz": 1},
+                    "encoder": "json",
+                }
+            },
+            {"scrapbook": {"name": "foobarbaz"}},
         ),
     ],
 )
 @mock.patch("scrapbook.api.ip_display")
-def test_glue(mock_display, name, scrap, storage, data):
-    glue(name, scrap, storage)
-    mock_display.assert_called_once_with(data, raw=True)
+def test_glue(mock_display, name, scrap, encoder, data, metadata):
+    glue(name, scrap, encoder)
+    mock_display.assert_called_once_with(data, metadata=metadata, raw=True)
 
 
 @pytest.mark.parametrize(
-    "name,obj,data,metadata",
+    "name,obj,data,encoder,metadata,display",
     [
         (
             "foobarbaz",
             "foo,bar,baz",
             {u"text/plain": u"'foo,bar,baz'"},
+            "display",  # Prevent data saves
             {u"scrapbook": {u"name": u"foobarbaz"}},
+            None,  # This should default into True
         ),
         (
             "tinypng",
@@ -68,11 +98,85 @@ def test_glue(mock_display, name, scrap, storage, data):
                 ),
                 u"text/plain": u"<IPython.core.display.Image object>",
             },
+            "display",  # Prevent data saves
             {"scrapbook": {"name": "tinypng"}},
+            True,
+        ),
+        (
+            "tinypng",
+            Image(filename=get_fixture_path("tiny.png")),
+            {u"text/plain": u"<IPython.core.display.Image object>"},
+            "display",  # Prevent data saves
+            {"scrapbook": {"name": "tinypng"}},
+            ("text/plain",),  # Pick content of display
+        ),
+        (
+            "tinypng",
+            Image(filename=get_fixture_path("tiny.png")),
+            {u"text/plain": u"<IPython.core.display.Image object>"},
+            "display",  # Prevent data saves
+            {"scrapbook": {"name": "tinypng"}},
+            {"exclude": "image/png"},  # Exclude content of display
+        ),
+        (
+            "tinypng",
+            Image(filename=get_fixture_path("tiny.png")),
+            {},  # Should have no matching outputs
+            "display",  # Prevent data saves
+            {"scrapbook": {"name": "tinypng"}},
+            ("n/a",),  # Pick content of display
         ),
     ],
 )
 @mock.patch("scrapbook.api.ip_display")
-def test_sketch(mock_display, name, obj, data, metadata):
-    sketch(name, obj)
+def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, display):
+    glue(name, obj, encoder, display)
     mock_display.assert_called_once_with(data, metadata=metadata, raw=True)
+
+
+@pytest.mark.parametrize(
+    "name,obj,data_output,display_output,encoder,metadata,display",
+    [
+        (
+            "foobarbaz",
+            "foo,bar,baz",
+            {
+                GLUE_PAYLOAD_FMT.format(encoder="text"): {
+                    "name": "foobarbaz",
+                    "data": "foo,bar,baz",
+                    "encoder": "text",
+                }
+            },
+            {u"text/plain": u"'foo,bar,baz'"},
+            None,  # Save data as default
+            {u"scrapbook": {u"name": u"foobarbaz"}},
+            True,  # Indicate display should also be available
+        ),
+        (
+            "foobarbaz",
+            ["foo", "bar", "baz"],
+            {
+                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                    "name": "foobarbaz",
+                    "data": ["foo", "bar", "baz"],
+                    "encoder": "json",
+                }
+            },
+            {u"text/plain": u"['foo', 'bar', 'baz']"},
+            "json",  # Save data as json
+            {u"scrapbook": {u"name": u"foobarbaz"}},
+            True,  # Indicate display should also be available
+        ),
+    ],
+)
+@mock.patch("scrapbook.api.ip_display")
+def test_glue_plus_display(
+    mock_display, name, obj, data_output, display_output, encoder, metadata, display
+):
+    glue(name, obj, encoder, display)
+    mock_display.assert_has_calls(
+        [
+            mock.call(data_output, metadata=metadata, raw=True),
+            mock.call(display_output, metadata=metadata, raw=True),
+        ]
+    )

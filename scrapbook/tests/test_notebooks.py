@@ -21,6 +21,11 @@ except NameError:
     FileNotFoundError = IOError
 
 
+class AnyDict(object):
+    def __eq__(self, other):
+        return isinstance(other, dict)
+
+
 @pytest.fixture
 def notebook_result():
     path = get_notebook_path("collection/result1.ipynb")
@@ -49,8 +54,8 @@ def test_parameters(notebook_result):
     assert notebook_result.parameters == dict(foo=1, bar="hello")
 
 
-def test_scraps(notebook_result):
-    assert notebook_result.scraps == {
+def test_data_scraps(notebook_result):
+    assert notebook_result.scraps.data_dict == {
         "dict": {u"a": 1, u"b": 2},
         "list": [1, 2, 3],
         "number": 1,
@@ -58,8 +63,8 @@ def test_scraps(notebook_result):
     }
 
 
-def test_snaps(notebook_result):
-    assert notebook_result.snaps == {
+def test_display_scraps(notebook_result):
+    assert notebook_result.scraps.display_dict == {
         "output": {
             "data": {"text/plain": "'Hello World!'"},
             "metadata": {"papermill": {"name": "output"}},
@@ -73,26 +78,68 @@ def test_snaps(notebook_result):
     }
 
 
+def test_scraps_collection_dataframe(notebook_result):
+    expected_df = pd.DataFrame(
+        [
+            ("one", 1, "json", None),
+            ("number", 1, "json", None),
+            ("list", [1, 2, 3], "json", None),
+            ("dict", {u"a": 1, u"b": 2}, "json", None),
+            ("output", None, "display", AnyDict()),
+            ("one_only", None, "display", AnyDict()),
+        ],
+        columns=["name", "data", "encoder", "display"],
+    )
+    assert_frame_equal(notebook_result.scraps.dataframe, expected_df, check_exact=True)
+
+
 @mock.patch("scrapbook.models.ip_display")
-def test_resketch(mock_display, notebook_result):
-    notebook_result.resketch("output")
+def test_reglue_display(mock_display, notebook_result):
+    notebook_result.reglue("output")
     mock_display.assert_called_once_with(
         {"text/plain": "'Hello World!'"},
-        # We don't re-translate the metadata from older messages
-        metadata={"papermill": {"name": "output"}},
+        metadata={"scrapbook": {"name": "output"}},
         raw=True,
     )
 
 
-def test_missing_resketch(notebook_result):
+@mock.patch("scrapbook.models.ip_display")
+def test_reglue_scrap(mock_display, notebook_result):
+    notebook_result.reglue("one")
+    mock_display.assert_called_once_with(
+        {
+            "application/scrapbook.scrap.json+json": {
+                "name": "one",
+                "data": 1,
+                "encoder": "json",
+            }
+        },
+        metadata={"scrapbook": {"name": "one"}},
+        raw=True,
+    )
+
+
+def test_missing_reglue(notebook_result):
     with pytest.raises(ScrapbookException):
-        notebook_result.resketch("foo")
+        notebook_result.reglue("foo")
 
 
 @mock.patch("scrapbook.models.ip_display")
-def test_missing_resketch_no_error(mock_display, notebook_result):
-    notebook_result.resketch("foo", raise_error=False)
-    mock_display.assert_called_once_with("No snap available for foo")
+def test_missing_reglue_no_error(mock_display, notebook_result):
+    notebook_result.reglue("foo", raise_on_missing=False)
+    mock_display.assert_called_once_with(
+        "No scrap found with name 'foo' in this notebook"
+    )
+
+
+@mock.patch("scrapbook.models.ip_display")
+def test_reglue_rename(mock_display, notebook_result):
+    notebook_result.reglue("output", "new_output")
+    mock_display.assert_called_once_with(
+        {"text/plain": "'Hello World!'"},
+        metadata={"scrapbook": {"name": "new_output"}},
+        raw=True,
+    )
 
 
 @pytest.fixture
@@ -133,6 +180,21 @@ def test_malformed_execution_metrics(no_exec_result):
     assert_frame_equal(no_exec_result.papermill_metrics, expected_df)
 
 
+def test_scrap_dataframe(notebook_result):
+    expected_df = pd.DataFrame(
+        [
+            ("one", 1, "json", None, "result1.ipynb"),
+            ("number", 1, "json", None, "result1.ipynb"),
+            ("list", [1, 2, 3], "json", None, "result1.ipynb"),
+            ("dict", {u"a": 1, u"b": 2}, "json", None, "result1.ipynb"),
+            ("output", None, "display", AnyDict(), "result1.ipynb"),
+            ("one_only", None, "display", AnyDict(), "result1.ipynb"),
+        ],
+        columns=["name", "data", "encoder", "display", "filename"],
+    )
+    assert_frame_equal(notebook_result.scrap_dataframe, expected_df, check_exact=True)
+
+
 def test_papermill_dataframe(notebook_result):
     expected_df = pd.DataFrame(
         [
@@ -151,13 +213,13 @@ def test_papermill_dataframe(notebook_result):
 def test_no_cells():
     nb = Notebook(new_notebook(cells=[]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.snaps == collections.OrderedDict()
+    assert nb.scrap_outputs == []
 
 
 def test_no_outputs():
     nb = Notebook(new_notebook(cells=[new_code_cell("test", outputs=[])]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.snaps == collections.OrderedDict()
+    assert nb.scrap_outputs == []
 
 
 def test_empty_metadata():
@@ -165,7 +227,7 @@ def test_empty_metadata():
     raw_nb = new_notebook(cells=[new_code_cell("test", outputs=[output])])
     nb = Notebook(raw_nb)
     assert nb.scraps == collections.OrderedDict()
-    assert nb.snaps == collections.OrderedDict()
+    assert nb.scrap_outputs == []
 
 
 def test_metadata_but_empty_content():
@@ -173,10 +235,12 @@ def test_metadata_but_empty_content():
     raw_nb = new_notebook(cells=[new_code_cell("test", outputs=[output])])
     nb = Notebook(raw_nb)
     assert nb.scraps == collections.OrderedDict()
-    assert nb.snaps == collections.OrderedDict()
+    assert nb.scrap_outputs == [
+        {"data": {}, "metadata": {"scrapbook": {}}, "output_type": "display_data"}
+    ]
 
 
 def test_markdown():
     nb = Notebook(new_notebook(cells=[new_markdown_cell("this is a test.")]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.snaps == collections.OrderedDict()
+    assert nb.scrap_outputs == []

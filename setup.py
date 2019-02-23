@@ -39,26 +39,35 @@ def read_reqs(fname):
     req_path = os.path.join(here, fname)
     return [req.strip() for req in read(req_path).splitlines() if req.strip()]
 
-dev_reqs = read_reqs('requirements-dev.txt')
-extras_require = {"test": dev_reqs, "dev": dev_reqs}
 
-pip_too_old = False
-pip_message = ""
+reqs_s3 = ["papermill[s3]"]
+reqs_azure = ["papermill[azure]"]
+reqs_gcs = ["papermill[gcs]"]
+reqs_all = ["papermill[all]"]
+reqs_dev = read_reqs("requirements-dev.txt") + reqs_all
+extras_require = {
+    "test": reqs_dev,
+    "dev": reqs_dev,
+    "all": reqs_all,
+    "s3": reqs_s3,
+    "azure": reqs_azure,
+    "gcs": reqs_gcs,
+}
 
 # Tox has a weird issue where it can't import pip from it's virtualenv when skipping normal installs
-if not bool(int(os.environ.get('SKIP_PIP_CHECK', 0))):
+if not bool(int(os.environ.get("SKIP_PIP_CHECK", 0))):
     pip_too_old = False
-    pip_message = ''
+    pip_message = ""
     try:
         import pip
 
-        pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
+        pip_version = tuple([int(x) for x in pip.__version__.split(".")[:3]])
         pip_too_old = pip_version < (9, 0, 1)
         if pip_too_old:
             # pip is too old to handle IPython deps gracefully
             pip_message = (
-                'Your pip version is out of date. Papermill requires pip >= 9.0.1. \n'
-                'pip {} detected. Please install pip >= 9.0.1.'.format(pip.__version__)
+                "Your pip version is out of date. Papermill requires pip >= 9.0.1. \n"
+                "pip {} detected. Please install pip >= 9.0.1.".format(pip.__version__)
             )
     except Exception:
         # We only want to optimistically report old versions
@@ -86,7 +95,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/nteract/scrapbook",
     packages=["scrapbook"],
-    install_requires=read_reqs('requirements.txt'),
+    install_requires=read_reqs("requirements.txt"),
     extras_require=extras_require,
     project_urls={
         "Documentation": "https://nteract-scrapbook.readthedocs.io",
