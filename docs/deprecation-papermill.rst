@@ -1,5 +1,5 @@
-papermill's deprecated ``record`` feature
-=========================================
+papermill record
+================
 
 **scrapbook** provides a robust and flexible recording schema. This
 library is intended to replace
@@ -7,7 +7,7 @@ library is intended to replace
 functionality.
 
 `Documentation for papermill
-record <https://papermill.readthedocs.io/en/latest/usage.html#recording-values-to-the-notebook>`__
+record <https://papermill.readthedocs.io/en/latest/usage-recording.html?#recording-values-to-the-notebook>`__
 In brief:
 
 ``pm.record(name, value)``: enabled users the ability to record values

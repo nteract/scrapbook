@@ -368,11 +368,10 @@ Implementation Pending!
 
 ## papermill's deprecated `record` feature
 
-**scrapbook** provides a robust and flexible recording schema. This library is
-intended to replace [papermill](https://papermill.readthedocs.io)'s existing
+**scrapbook** provides a robust and flexible recording schema. This library replaces [papermill](https://papermill.readthedocs.io)'s existing
 `record` functionality.
 
-[Documentation for papermill record](https://papermill.readthedocs.io/en/latest/usage.html#recording-values-to-the-notebook)
+[Documentation for papermill record](https://papermill.readthedocs.io/en/latest/usage-recording.html?#recording-values-to-the-notebook)
 In brief:
 
 `pm.record(name, value)`: enabled users the ability to record values to be saved

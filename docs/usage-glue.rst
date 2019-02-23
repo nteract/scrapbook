@@ -38,8 +38,8 @@ outputs are not always visible in notebook rendering but still exist in
 the document. Scrapbook can then rehydrate the data associated with the
 notebook in the future by reading these cell outputs.
 
-With *display output*
----------------------
+Display Outputs
+---------------
 
 To display a named scrap with visible display outputs, you need to
 indicate that the scrap is directly renderable.

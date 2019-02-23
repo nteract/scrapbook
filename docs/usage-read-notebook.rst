@@ -1,7 +1,7 @@
 .. _read_notebook_usage:
 
-``read_notebook`` API
-=====================
+read_notebook API
+=================
 
 Reads a :ref:`notebook_model` object loaded from the location specified at ``path``.
 You've already seen how this function is used in the above api call
@@ -62,11 +62,11 @@ to enable access to a variety of sources such as -- but not limited to
 
 .. _notebook_scraps:
 
-``scraps`` provides a name -> scrap lookup
-------------------------------------------
+scraps
+------
 
 The ``scraps`` method allows for access to all of the scraps in a
-particular notebook.
+particular notebook by providing a name -> scrap lookup.
 
 .. code:: python
 
@@ -89,8 +89,8 @@ model abstractions.
 
 .. _notebook_reglue:
 
-``reglue`` copys a scrap into the current notebook
---------------------------------------------------
+reglue
+------
 
 Using ``reglue`` one can take any scrap glue'd into one notebook and
 glue into the current one.

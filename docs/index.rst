@@ -16,16 +16,15 @@ Welcome to scrapbook
 generated visual content as "scraps". These recorded scraps can be read
 at a future time.
 
+This library replaces `papermill <https://papermill.readthedocs.io>`_'s existing
+`record` functionality.
+
 Python Version Support
 ----------------------
 
 This library will support python 2.7 and 3.5+ until end-of-life for
 python 2 in 2020. After which python 2 support will halt and only 3.x
 version will be maintained.
-
-**scrapbook** provides a robust and flexible recording schema. This library is
-planned to replace `papermill <https://papermill.readthedocs.io>`_'s existing
-`record` functionality.
 
 Use Case
 --------

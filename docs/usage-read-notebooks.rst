@@ -1,7 +1,7 @@
 .. _read_notebooks_usage:
 
-``read_notebooks`` API
-======================
+read_notebooks API
+==================
 
 Reads all notebooks located in a given ``path`` into a :ref:`scrapbook_model` object.
 
@@ -13,7 +13,7 @@ Reads all notebooks located in a given ``path`` into a :ref:`scrapbook_model` ob
     book.notebooks # Or `book.values`
 
 The path reuses `papermill's registered
-``iorw`` <https://papermill.readthedocs.io/en/latest/reference/papermill-io.html>`__
+iorw <https://papermill.readthedocs.io/en/latest/reference/papermill-io.html>`_.
 to list and read files form various sources, such that non-local urls
 can load data.
 
@@ -32,8 +32,8 @@ scraps across the collection of notebooks:
 
 .. _scrapbook_scraps_report:
 
-``scraps_report`` displays a report about collected scraps
-----------------------------------------------------------
+scraps_report
+-------------
 
 The Scrapbook collection can be used to generate a ``scraps_report`` on
 all the scraps from the collection as a markdown structured output.
