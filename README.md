@@ -27,6 +27,8 @@ A few new names for information are introduced in scrapbook:
   with scraps.
 - **scrapbook**: a collection of notebooks with an interface for asking questions of
   the collection.
+-  **encoders**: a registered translator of data to/from notebook
+  storage formats.
 
 ### Scrap
 
