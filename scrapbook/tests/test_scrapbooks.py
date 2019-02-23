@@ -11,7 +11,7 @@ from pandas.util.testing import assert_frame_equal
 
 from . import get_notebook_path
 from .. import read_notebooks
-from ..models import Scrap, Scraps
+from ..scraps import Scrap, Scraps
 
 
 class AnyMarkdownWith(Markdown):

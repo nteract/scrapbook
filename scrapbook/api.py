@@ -15,7 +15,9 @@ from IPython.display import display as ip_display
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
 
-from .models import Notebook, Scrapbook, Scrap, GLUE_PAYLOAD_FMT, scrap_to_payload
+from .models import Notebook, Scrapbook
+from .scraps import Scrap, scrap_to_payload
+from .schemas import GLUE_PAYLOAD_FMT
 from .encoders import registry as encoder_registry
 
 

@@ -1,0 +1,57 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "title": "The Root Schema",
+  "required": [
+    "name",
+    "data",
+    "encoder",
+    "version"
+  ],
+  "properties": {
+    "name": {
+      "$id": "#/properties/name",
+      "type": "string",
+      "title": "scrap name",
+      "description": "Name of the Scrap",
+      "examples": [
+        "name"
+      ]
+    },
+    "data": {
+      "$id": "#/properties/data",
+      "type": [
+        "object",
+        "array",
+        "boolean",
+        "string",
+        "number",
+        "integer"
+      ],
+      "title": "scrap data",
+      "description": "The raw data in JSON format associated with this Scrap",
+      "examples": [
+        "data"
+      ]
+    },
+    "encoder": {
+      "$id": "#/properties/encoder",
+      "type": "string",
+      "title": "scrap encoder",
+      "description": "The encoder key used to encode and decode the \"data\"",
+      "examples": [
+        "json"
+      ]
+    },
+    "version": {
+      "$id": "#/properties/version",
+      "type": "integer",
+      "title": "scrap version",
+      "description": "The version denoting the schema this payload is adhering to",
+      "default": 1,
+      "readOnly": true
+    }
+  }
+}
