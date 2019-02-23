@@ -8,7 +8,7 @@ import collections
 from IPython.display import Image
 
 from . import get_fixture_path
-from ..models import GLUE_OUTPUT_PREFIX
+from ..models import GLUE_PAYLOAD_FMT
 from ..api import glue
 
 
@@ -20,8 +20,11 @@ from ..api import glue
             {"foo": "bar", "baz": 1},
             None,
             {
-                GLUE_OUTPUT_PREFIX
-                + "json": {"name": "foobarbaz", "data": {"foo": "bar", "baz": 1}}
+                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                    "name": "foobarbaz",
+                    "data": {"foo": "bar", "baz": 1},
+                    "encoder": "json",
+                }
             },
             {"scrapbook": {"name": "foobarbaz"}},
         ),
@@ -30,8 +33,11 @@ from ..api import glue
             '{"foo":"bar","baz":1}',
             None,
             {
-                GLUE_OUTPUT_PREFIX
-                + "text": {"name": "foobarbaz", "data": '{"foo":"bar","baz":1}'}
+                GLUE_PAYLOAD_FMT.format(encoder="text"): {
+                    "name": "foobarbaz",
+                    "data": '{"foo":"bar","baz":1}',
+                    "encoder": "text",
+                }
             },
             {"scrapbook": {"name": "foobarbaz"}},
         ),
@@ -40,8 +46,11 @@ from ..api import glue
             '{"foo":"bar","baz":1}',
             "json",
             {
-                GLUE_OUTPUT_PREFIX
-                + "json": {"name": "foobarbaz", "data": {"foo": "bar", "baz": 1}}
+                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                    "name": "foobarbaz",
+                    "data": {"foo": "bar", "baz": 1},
+                    "encoder": "json",
+                }
             },
             {"scrapbook": {"name": "foobarbaz"}},
         ),
@@ -51,8 +60,11 @@ from ..api import glue
             collections.OrderedDict({"foo": "bar", "baz": 1}),
             "json",
             {
-                GLUE_OUTPUT_PREFIX
-                + "json": {"name": "foobarbaz", "data": {"foo": "bar", "baz": 1}}
+                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                    "name": "foobarbaz",
+                    "data": {"foo": "bar", "baz": 1},
+                    "encoder": "json",
+                }
             },
             {"scrapbook": {"name": "foobarbaz"}},
         ),
@@ -101,6 +113,14 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
         (
             "tinypng",
             Image(filename=get_fixture_path("tiny.png")),
+            {u"text/plain": u"<IPython.core.display.Image object>"},
+            "display",  # Prevent data saves
+            {"scrapbook": {"name": "tinypng"}},
+            {"exclude": "image/png"},  # Exclude content of display
+        ),
+        (
+            "tinypng",
+            Image(filename=get_fixture_path("tiny.png")),
             {},  # Should have no matching outputs
             "display",  # Prevent data saves
             {"scrapbook": {"name": "tinypng"}},
@@ -120,7 +140,13 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
         (
             "foobarbaz",
             "foo,bar,baz",
-            {GLUE_OUTPUT_PREFIX + "text": {"name": "foobarbaz", "data": "foo,bar,baz"}},
+            {
+                GLUE_PAYLOAD_FMT.format(encoder="text"): {
+                    "name": "foobarbaz",
+                    "data": "foo,bar,baz",
+                    "encoder": "text",
+                }
+            },
             {u"text/plain": u"'foo,bar,baz'"},
             None,  # Save data as default
             {u"scrapbook": {u"name": u"foobarbaz"}},
@@ -130,8 +156,11 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
             "foobarbaz",
             ["foo", "bar", "baz"],
             {
-                GLUE_OUTPUT_PREFIX
-                + "json": {"name": "foobarbaz", "data": ["foo", "bar", "baz"]}
+                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                    "name": "foobarbaz",
+                    "data": ["foo", "bar", "baz"],
+                    "encoder": "json",
+                }
             },
             {u"text/plain": u"['foo', 'bar', 'baz']"},
             "json",  # Save data as json

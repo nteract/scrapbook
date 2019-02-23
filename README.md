@@ -128,8 +128,25 @@ the encoder to be `display`.
 ```python
 # record an image without the original input object
 sb.glue("sharable_png",
-  IPython.display.Image(filename=get_fixture_path("sharable.png")),
+  IPython.display.Image(filename="sharable.png"),
   encoder='display'
+)
+```
+
+Finally the media types that are generated can be controlled by passing
+a list, tuple, or dict object as the display argument.
+
+```python
+sb.glue("media_as_text_only",
+  media_obj,
+  encoder='display',
+  display=('text/plain',) # This passes [text/plain] to format_display_data's include argument
+)
+
+sb.glue("media_without_text",
+  media_obj,
+  encoder='display',
+  display={'exclude': 'text/plain'} # forward to format_display_data's kwargs
 )
 ```
 

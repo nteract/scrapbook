@@ -107,7 +107,13 @@ def test_reglue_display(mock_display, notebook_result):
 def test_reglue_scrap(mock_display, notebook_result):
     notebook_result.reglue("one")
     mock_display.assert_called_once_with(
-        {"application/scrapbook.scrap+json": {"name": "one", "data": 1}},
+        {
+            "application/scrapbook.scrap.json+json": {
+                "name": "one",
+                "data": 1,
+                "encoder": "json",
+            }
+        },
         metadata={"scrapbook": {"name": "one"}},
         raw=True,
     )

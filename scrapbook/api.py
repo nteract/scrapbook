@@ -15,11 +15,11 @@ from IPython.display import display as ip_display
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
 
-from .models import Notebook, Scrapbook, Scrap, GLUE_OUTPUT_PREFIX, scrap_to_payload
+from .models import Notebook, Scrapbook, Scrap, GLUE_PAYLOAD_FMT, scrap_to_payload
 from .encoders import registry as encoder_registry
 
 
-def glue(name, scrap, encoder=None, display=False):
+def glue(name, scrap, encoder=None, display=None):
     """
     Records a scrap (data value) in the given notebook cell.
 
@@ -83,8 +83,7 @@ def glue(name, scrap, encoder=None, display=False):
     # Only store data that can be stored (purely display scraps can skip)
     if encoder != "display":
         data = {
-            GLUE_OUTPUT_PREFIX
-            + encoder: scrap_to_payload(
+            GLUE_PAYLOAD_FMT.format(encoder=encoder): scrap_to_payload(
                 encoder_registry.encode(Scrap(name, scrap, encoder))
             )
         }
@@ -95,11 +94,13 @@ def glue(name, scrap, encoder=None, display=False):
 
     # Only display data that is marked for display
     if display:
-        include_displays = None
+        display_kwargs = {}
         if isinstance(display, (list, tuple)):
-            include_displays = display
+            display_kwargs = {"include": display}
+        elif isinstance(display, dict):
+            display_kwargs = display
         data, metadata = IPython.core.formatters.format_display_data(
-            scrap, include=include_displays
+            scrap, **display_kwargs
         )
         metadata["scrapbook"] = dict(name=name)
         ip_display(data, metadata=metadata, raw=True)
