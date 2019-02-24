@@ -51,6 +51,22 @@ scrapbook.models module
     :undoc-members:
     :show-inheritance:
 
+scrapbook.schemas module
+------------------------
+
+.. automodule:: scrapbook.schemas
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+scrapbook.scraps module
+-----------------------
+
+.. automodule:: scrapbook.scraps
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 scrapbook.version module
 ------------------------
 

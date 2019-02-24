@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-modles.py
+models.py
 
-Provides the varioud model wrapper objects for scrapbook
+Provides the various model wrapper objects for scrapbook
 """
 from __future__ import unicode_literals
 import os

@@ -36,6 +36,14 @@ scrapbook.tests.test\_scrapbooks module
     :undoc-members:
     :show-inheritance:
 
+scrapbook.tests.test\_scraps module
+-----------------------------------
+
+.. automodule:: scrapbook.tests.test_scraps
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
