@@ -21,12 +21,7 @@ from IPython.display import display as ip_display, Markdown
 from papermill.iorw import papermill_io
 
 from .scraps import Scrap, Scraps, payload_to_scrap, scrap_to_payload
-from .schemas import (
-    GLUE_PAYLOAD_FMT,
-    GLUE_PAYLOAD_PREFIX,
-    RECORD_PAYLOAD_PREFIX,
-    SCRAP_PAYLOAD_PREFIXES,
-)
+from .schemas import GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX
 from .encoders import registry as encoder_registry
 from .exceptions import ScrapbookException
 

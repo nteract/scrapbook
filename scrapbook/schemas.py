@@ -18,10 +18,6 @@ def _load_schema(fname):
 GLUE_PAYLOAD_PREFIX = "application/scrapbook.scrap"
 GLUE_PAYLOAD_FMT = GLUE_PAYLOAD_PREFIX + ".{encoder}+json"
 RECORD_PAYLOAD_PREFIX = "application/papermill.record"
-SCRAP_PAYLOAD_PREFIXES = set(
-    [GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX]  # Backwards compatibility
-)
-
 JSON_FILE_VERSION_REGEX = r".*scrap\.v([0-9]+)\.json"
 SCHEMAS = {
     int(re.search(JSON_FILE_VERSION_REGEX, fname).group(1)): _load_schema(fname)
