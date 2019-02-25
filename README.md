@@ -311,6 +311,13 @@ book.scraps_report(
 )
 ```
 
+By default the report will only populate with visual elements. To also
+report on data elements set include_data.
+
+```python
+book.scraps_report(include_data=True)
+```
+
 #### papermill support
 
 Finally the scrapbook has two backwards compatible features for deprecated
