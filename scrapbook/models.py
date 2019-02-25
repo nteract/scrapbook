@@ -13,8 +13,6 @@ import pandas as pd
 
 from six import string_types
 from collections import OrderedDict
-from six import string_types, integer_types
-from collections import OrderedDict
 from IPython.display import display as ip_display, Markdown
 
 # We lean on papermill's readers to connect to remote stores
