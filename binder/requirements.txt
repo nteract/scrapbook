@@ -1,2 +1,5 @@
 ../scrapbook
+papermill
+matplotlib
+ipywidgets
 ipykernel
