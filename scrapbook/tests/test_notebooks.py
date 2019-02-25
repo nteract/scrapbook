@@ -112,6 +112,7 @@ def test_reglue_scrap(mock_display, notebook_result):
                 "name": "one",
                 "data": 1,
                 "encoder": "json",
+                "version": 1,
             }
         },
         metadata={"scrapbook": {"name": "one"}},
@@ -192,7 +193,13 @@ def test_scrap_dataframe(notebook_result):
         ],
         columns=["name", "data", "encoder", "display", "filename"],
     )
-    assert_frame_equal(notebook_result.scrap_dataframe, expected_df, check_exact=True)
+    assert_frame_equal(
+        notebook_result.scrap_dataframe,
+        expected_df,
+        # Python 2.7 gets confused here with AnyDict / None sometimes
+        check_exact=True,
+        check_column_type=False,
+    )
 
 
 def test_papermill_dataframe(notebook_result):

@@ -4,8 +4,12 @@
 import pytest
 
 from ..encoders import DataEncoderRegistry, JsonEncoder, TextEncoder
-from ..exceptions import ScrapbookException, ScrapbookDataException
-from ..models import Scrap
+from ..exceptions import (
+    ScrapbookException,
+    ScrapbookDataException,
+    ScrapbookMissingEncoder,
+)
+from ..scraps import Scrap
 
 try:
     from json.decoder import JSONDecodeError
@@ -16,11 +20,26 @@ except ImportError:
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        (Scrap(data={"foo": "bar", "baz": 1}), Scrap(data={"foo": "bar", "baz": 1})),
-        (Scrap(data='{"foo":"bar","baz":1}'), Scrap(data={"foo": "bar", "baz": 1})),
-        (Scrap(data=["foo", "bar", 1, 2, 3]), Scrap(data=["foo", "bar", 1, 2, 3])),
-        (Scrap(data='["foo","bar",1,2,3]'), Scrap(data=["foo", "bar", 1, 2, 3])),
-        (Scrap(data=u'["😍"]'), Scrap(data=[u"😍"])),
+        (
+            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="json"),
+            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="json"),
+        ),
+        (
+            Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="json"),
+            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="json"),
+        ),
+        (
+            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="json"),
+            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="json"),
+        ),
+        (
+            Scrap(name="foo", data='["foo","bar",1,2,3]', encoder="json"),
+            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="json"),
+        ),
+        (
+            Scrap(name="foo", data=u'["😍"]', encoder="json"),
+            Scrap(name="foo", data=[u"😍"], encoder="json"),
+        ),
     ],
 )
 def test_json_decode(test_input, expected):
@@ -28,7 +47,12 @@ def test_json_decode(test_input, expected):
 
 
 @pytest.mark.parametrize(
-    "test_input", [Scrap(data=""), Scrap(data='{"inavlid","json"}'), Scrap(data=u"😍")]
+    "test_input",
+    [
+        Scrap(name="foo", data="", encoder="json"),
+        Scrap(name="foo", data='{"inavlid","json"}', encoder="json"),
+        Scrap(name="foo", data=u"😍", encoder="json"),
+    ],
 )
 def test_json_decode_failures(test_input):
     with pytest.raises(JSONDecodeError):
@@ -38,11 +62,26 @@ def test_json_decode_failures(test_input):
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        (Scrap(data={"foo": "bar", "baz": 1}), Scrap(data={"foo": "bar", "baz": 1})),
-        (Scrap(data='{"foo":"bar","baz":1}'), Scrap(data={"foo": "bar", "baz": 1})),
-        (Scrap(data=["foo", "bar", 1, 2, 3]), Scrap(data=["foo", "bar", 1, 2, 3])),
-        (Scrap(data='["foo","bar",1,2,3]'), Scrap(data=["foo", "bar", 1, 2, 3])),
-        (Scrap(data=u'["😍"]'), Scrap(data=[u"😍"])),
+        (
+            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="json"),
+            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="json"),
+        ),
+        (
+            Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="json"),
+            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="json"),
+        ),
+        (
+            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="json"),
+            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="json"),
+        ),
+        (
+            Scrap(name="foo", data='["foo","bar",1,2,3]', encoder="json"),
+            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="json"),
+        ),
+        (
+            Scrap(name="foo", data=u'["😍"]', encoder="json"),
+            Scrap(name="foo", data=[u"😍"], encoder="json"),
+        ),
     ],
 )
 def test_json_encode(test_input, expected):
@@ -50,7 +89,12 @@ def test_json_encode(test_input, expected):
 
 
 @pytest.mark.parametrize(
-    "test_input", [Scrap(data=""), Scrap(data='{"inavlid","json"}'), Scrap(data=u"😍")]
+    "test_input",
+    [
+        Scrap(name="foo", data="", encoder="json"),
+        Scrap(name="foo", data='{"inavlid","json"}', encoder="json"),
+        Scrap(name="foo", data=u"😍", encoder="json"),
+    ],
 )
 def test_json_encode_failures(test_input):
     with pytest.raises(JSONDecodeError):
@@ -66,14 +110,29 @@ class Dummy(object):
     "test_input,expected",
     [
         (
-            Scrap(data={"foo": "bar", "baz": 1}),
-            Scrap(data=str({"foo": "bar", "baz": 1})),
+            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="text"),
+            Scrap(name="foo", data=str({"foo": "bar", "baz": 1}), encoder="text"),
         ),
-        (Scrap(data='{"foo":"bar","baz":1}'), Scrap(data='{"foo":"bar","baz":1}')),
-        (Scrap(data=["foo", "bar", 1, 2, 3]), Scrap(data="['foo', 'bar', 1, 2, 3]")),
-        (Scrap(data='["foo","bar",1,2,3]'), Scrap(data='["foo","bar",1,2,3]')),
-        (Scrap(data=Dummy()), Scrap(data="foo")),
-        (Scrap(data=u"😍"), Scrap(data=u"😍")),
+        (
+            Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="text"),
+            Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="text"),
+        ),
+        (
+            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="text"),
+            Scrap(name="foo", data="['foo', 'bar', 1, 2, 3]", encoder="text"),
+        ),
+        (
+            Scrap(name="foo", data='["foo","bar",1,2,3]', encoder="text"),
+            Scrap(name="foo", data='["foo","bar",1,2,3]', encoder="text"),
+        ),
+        (
+            Scrap(name="foo", data=Dummy(), encoder="text"),
+            Scrap(name="foo", data="foo", encoder="text"),
+        ),
+        (
+            Scrap(name="foo", data=u"😍", encoder="text"),
+            Scrap(name="foo", data=u"😍", encoder="text"),
+        ),
     ],
 )
 def test_text_decode(test_input, expected):
@@ -84,14 +143,29 @@ def test_text_decode(test_input, expected):
     "test_input,expected",
     [
         (
-            Scrap(data={"foo": "bar", "baz": 1}),
-            Scrap(data=str({"foo": "bar", "baz": 1})),
+            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="text"),
+            Scrap(name="foo", data=str({"foo": "bar", "baz": 1}), encoder="text"),
         ),
-        (Scrap(data='{"foo":"bar","baz":1}'), Scrap(data='{"foo":"bar","baz":1}')),
-        (Scrap(data=["foo", "bar", 1, 2, 3]), Scrap(data="['foo', 'bar', 1, 2, 3]")),
-        (Scrap(data='["foo","bar",1,2,3]'), Scrap(data='["foo","bar",1,2,3]')),
-        (Scrap(data=Dummy()), Scrap(data="foo")),
-        (Scrap(data=u"😍"), Scrap(data=u"😍")),
+        (
+            Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="text"),
+            Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="text"),
+        ),
+        (
+            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="text"),
+            Scrap(name="foo", data="['foo', 'bar', 1, 2, 3]", encoder="text"),
+        ),
+        (
+            Scrap(name="foo", data='["foo","bar",1,2,3]', encoder="text"),
+            Scrap(name="foo", data='["foo","bar",1,2,3]', encoder="text"),
+        ),
+        (
+            Scrap(name="foo", data=Dummy(), encoder="text"),
+            Scrap(name="foo", data="foo", encoder="text"),
+        ),
+        (
+            Scrap(name="foo", data=u"😍", encoder="text"),
+            Scrap(name="foo", data=u"😍", encoder="text"),
+        ),
     ],
 )
 def test_text_encode(test_input, expected):
@@ -135,16 +209,16 @@ def test_registry_reset(registry):
 
 def test_decode(registry):
     # Test that it can select and execute the qualified encoder
-    assert registry.decode(Scrap(encoder="json", data='["foobar"]')) == Scrap(
-        encoder="json", data=["foobar"]
-    )
+    assert registry.decode(
+        Scrap(name="foo", encoder="json", data='["foobar"]')
+    ) == Scrap(name="foo", encoder="json", data=["foobar"])
 
 
 def test_encode(registry):
     # Test that it can select and execute the qualified encoder
-    assert registry.encode(Scrap(encoder="json", data='["foobar"]')) == Scrap(
-        encoder="json", data=["foobar"]
-    )
+    assert registry.encode(
+        Scrap(name="foo", encoder="json", data='["foobar"]')
+    ) == Scrap(name="foo", encoder="json", data=["foobar"])
 
 
 class BadData(object):
@@ -153,18 +227,29 @@ class BadData(object):
 
 class BadEncoder(object):
     def decode(self, scrap, **kwargs):
-        return Scrap(data=BadData())
+        return Scrap(scrap.name, data=BadData(), encoder="bad")
 
     def encode(self, scrap, **kwargs):
-        return Scrap(data=BadData())
+        return Scrap(scrap.name, data=BadData(), encoder="bad")
 
 
 def test_bad_decode(registry):
+    registry.register("bad", BadEncoder())
     with pytest.raises(ScrapbookDataException):
-        registry.decode(Scrap(data=BadData()))
+        registry.decode(Scrap(name="foo", data=BadData(), encoder="bad"))
 
 
 def test_bad_encode(registry):
     registry.register("bad", BadEncoder())
     with pytest.raises(ScrapbookDataException):
-        registry.encode(Scrap(encoder="bad"))
+        registry.encode(Scrap(name="foo", data="", encoder="bad"))
+
+
+def test_missing_decode(registry):
+    with pytest.raises(ScrapbookMissingEncoder):
+        registry.decode(Scrap(name="foo", data="bar", encoder="missing"))
+
+
+def test_missing_encode(registry):
+    with pytest.raises(ScrapbookMissingEncoder):
+        registry.encode(Scrap(name="foo", data="bar", encoder="missing"))

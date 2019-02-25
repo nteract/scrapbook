@@ -8,7 +8,11 @@ import six
 import json
 import collections
 
-from .exceptions import ScrapbookException, ScrapbookDataException
+from .scraps import scrap_to_payload
+from .exceptions import (
+    ScrapbookException,
+    ScrapbookMissingEncoder
+)
 
 
 class DataEncoderRegistry(collections.MutableMapping):
@@ -80,19 +84,11 @@ class DataEncoderRegistry(collections.MutableMapping):
         scrap: Scrap
             A partially filled in scrap with data that needs decoding
         """
-        if not isinstance(
-            scrap.data,
-            tuple([list, dict] + list(six.integer_types) + list(six.string_types)),
-        ):
-            raise ScrapbookDataException(
-                "Data load request for {encoder} is not a JSON type."
-                "Instead got '{data_type}'".format(
-                    encoder=scrap.encoder, data_type=type(scrap.data)
-                )
-            )
+        # Run validation on encoded data
+        scrap_to_payload(scrap)
         loader = self._encoders.get(scrap.encoder)
         if not loader:
-            raise ScrapbookException(
+            raise ScrapbookMissingEncoder(
                 'No encoder found for "{}" encoder type!'.format(scrap.encoder)
             )
         return loader.decode(scrap, **kwargs)
@@ -109,22 +105,14 @@ class DataEncoderRegistry(collections.MutableMapping):
         """
         encoder = self._encoders.get(scrap.encoder)
         if not encoder:
-            raise ScrapbookException(
+            raise ScrapbookMissingEncoder(
                 'No encoder found for "{data_type}" data type!'.format(
                     data_type=encoder
                 )
             )
         output_scrap = encoder.encode(scrap, **kwargs)
-        if not isinstance(
-            scrap.data,
-            tuple([list, dict] + list(six.integer_types) + list(six.string_types)),
-        ):
-            raise ScrapbookDataException(
-                "Data encoded from '{encoder_type}' is not a JSON type."
-                "Instead got '{data_type}'".format(
-                    encoder_type=type(encoder), data_type=type(scrap.data)
-                )
-            )
+        # Run validation on encoded data
+        scrap_to_payload(output_scrap)
         return output_scrap
 
 

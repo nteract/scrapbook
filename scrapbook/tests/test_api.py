@@ -8,8 +8,8 @@ import collections
 from IPython.display import Image
 
 from . import get_fixture_path
-from ..models import GLUE_PAYLOAD_FMT
 from ..api import glue
+from ..schemas import GLUE_PAYLOAD_FMT
 
 
 @pytest.mark.parametrize(
@@ -24,6 +24,7 @@ from ..api import glue
                     "name": "foobarbaz",
                     "data": {"foo": "bar", "baz": 1},
                     "encoder": "json",
+                    "version": 1,
                 }
             },
             {"scrapbook": {"name": "foobarbaz"}},
@@ -37,6 +38,7 @@ from ..api import glue
                     "name": "foobarbaz",
                     "data": '{"foo":"bar","baz":1}',
                     "encoder": "text",
+                    "version": 1,
                 }
             },
             {"scrapbook": {"name": "foobarbaz"}},
@@ -50,6 +52,7 @@ from ..api import glue
                     "name": "foobarbaz",
                     "data": {"foo": "bar", "baz": 1},
                     "encoder": "json",
+                    "version": 1,
                 }
             },
             {"scrapbook": {"name": "foobarbaz"}},
@@ -64,6 +67,7 @@ from ..api import glue
                     "name": "foobarbaz",
                     "data": {"foo": "bar", "baz": 1},
                     "encoder": "json",
+                    "version": 1,
                 }
             },
             {"scrapbook": {"name": "foobarbaz"}},
@@ -145,6 +149,7 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
                     "name": "foobarbaz",
                     "data": "foo,bar,baz",
                     "encoder": "text",
+                    "version": 1,
                 }
             },
             {u"text/plain": u"'foo,bar,baz'"},
@@ -160,6 +165,7 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
                     "name": "foobarbaz",
                     "data": ["foo", "bar", "baz"],
                     "encoder": "json",
+                    "version": 1,
                 }
             },
             {u"text/plain": u"['foo', 'bar', 'baz']"},

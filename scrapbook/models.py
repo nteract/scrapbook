@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-notebook.py
+models.py
 
-Provides the Notebook wrapper objects for scrapbook
+Provides the various model wrapper objects for scrapbook
 """
 from __future__ import unicode_literals
 import os
@@ -12,22 +12,21 @@ import collections
 import pandas as pd
 
 from six import string_types
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from IPython.display import display as ip_display, Markdown
 
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import papermill_io
 
+from .scraps import Scrap, Scraps, payload_to_scrap, scrap_to_payload
+from .schemas import (
+    GLUE_PAYLOAD_FMT,
+    GLUE_PAYLOAD_PREFIX,
+    RECORD_PAYLOAD_PREFIX,
+    SCRAP_PAYLOAD_PREFIXES,
+)
 from .encoders import registry as encoder_registry
 from .exceptions import ScrapbookException
-
-
-GLUE_PAYLOAD_PREFIX = "application/scrapbook.scrap"
-GLUE_PAYLOAD_FMT = GLUE_PAYLOAD_PREFIX + ".{encoder}+json"
-RECORD_PAYLOAD_PREFIX = "application/papermill.record"
-SCRAP_PAYLOAD_PREFIXES = set(
-    [GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX]  # Backwards compatibility
-)
 
 
 def merge_dicts(dicts):
@@ -36,58 +35,6 @@ def merge_dicts(dicts):
     for d in iterdicts:
         outcome.update(d)
     return outcome
-
-
-# dataclasses would be nice here...
-Scrap = namedtuple("Scrap", ["name", "data", "encoder", "display"])
-Scrap.__new__.__defaults__ = (None,) * len(Scrap._fields)
-
-
-def scrap_to_payload(scrap):
-    """Translates scrap data to the output format"""
-    # Apply new keys here as needed (like `ref`)
-    return {"name": scrap.name, "data": scrap.data, "encoder": scrap.encoder}
-
-
-def payload_to_scrap(output_payload):
-    """Translates data output format to a scrap"""
-    return Scrap(
-        name=output_payload.get("name"),
-        data=output_payload.get("data"),
-        encoder=output_payload.get("encoder"),
-    )
-
-
-class Scraps(OrderedDict):
-    def __init__(self, *args, **kwargs):
-        super(Scraps, self).__init__(*args, **kwargs)
-
-    @property
-    def data_scraps(self):
-        return OrderedDict([(k, v) for k, v in self.items() if v.data is not None])
-
-    @property
-    def data_dict(self):
-        return {name: scrap.data for name, scrap in self.data_scraps.items()}
-
-    @property
-    def display_scraps(self):
-        return OrderedDict([(k, v) for k, v in self.items() if v.display is not None])
-
-    @property
-    def display_dict(self):
-        return {name: scrap.display for name, scrap in self.display_scraps.items()}
-
-    @property
-    def dataframe(self):
-        """pandas dataframe: dataframe of cell scraps"""
-        return pd.DataFrame(
-            [
-                [scrap.name, scrap.data, scrap.encoder, scrap.display]
-                for scrap in self.values()
-            ],
-            columns=["name", "data", "encoder", "display"],
-        )
 
 
 class Notebook(object):
