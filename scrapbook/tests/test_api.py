@@ -27,7 +27,7 @@ from ..schemas import GLUE_PAYLOAD_FMT
                     "version": 1,
                 }
             },
-            {"scrapbook": {"name": "foobarbaz"}},
+            {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
         ),
         (
             "foobarbaz",
@@ -41,7 +41,7 @@ from ..schemas import GLUE_PAYLOAD_FMT
                     "version": 1,
                 }
             },
-            {"scrapbook": {"name": "foobarbaz"}},
+            {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
         ),
         (
             "foobarbaz",
@@ -55,7 +55,7 @@ from ..schemas import GLUE_PAYLOAD_FMT
                     "version": 1,
                 }
             },
-            {"scrapbook": {"name": "foobarbaz"}},
+            {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
         ),
         (
             "foobarbaz",
@@ -70,7 +70,7 @@ from ..schemas import GLUE_PAYLOAD_FMT
                     "version": 1,
                 }
             },
-            {"scrapbook": {"name": "foobarbaz"}},
+            {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
         ),
     ],
 )
@@ -88,7 +88,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
             "foo,bar,baz",
             {u"text/plain": u"'foo,bar,baz'"},
             "display",  # Prevent data saves
-            {u"scrapbook": {u"name": u"foobarbaz"}},
+            {u"scrapbook": {u"name": u"foobarbaz", "data": False, "display": True}},
             None,  # This should default into True
         ),
         (
@@ -103,7 +103,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
                 u"text/plain": u"<IPython.core.display.Image object>",
             },
             "display",  # Prevent data saves
-            {"scrapbook": {"name": "tinypng"}},
+            {"scrapbook": {"name": "tinypng", "data": False, "display": True}},
             True,
         ),
         (
@@ -111,7 +111,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
             Image(filename=get_fixture_path("tiny.png")),
             {u"text/plain": u"<IPython.core.display.Image object>"},
             "display",  # Prevent data saves
-            {"scrapbook": {"name": "tinypng"}},
+            {"scrapbook": {"name": "tinypng", "data": False, "display": True}},
             ("text/plain",),  # Pick content of display
         ),
         (
@@ -119,7 +119,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
             Image(filename=get_fixture_path("tiny.png")),
             {u"text/plain": u"<IPython.core.display.Image object>"},
             "display",  # Prevent data saves
-            {"scrapbook": {"name": "tinypng"}},
+            {"scrapbook": {"name": "tinypng", "data": False, "display": True}},
             {"exclude": "image/png"},  # Exclude content of display
         ),
         (
@@ -127,7 +127,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
             Image(filename=get_fixture_path("tiny.png")),
             {},  # Should have no matching outputs
             "display",  # Prevent data saves
-            {"scrapbook": {"name": "tinypng"}},
+            {"scrapbook": {"name": "tinypng", "data": False, "display": True}},
             ("n/a",),  # Pick content of display
         ),
     ],
@@ -139,7 +139,7 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
 
 
 @pytest.mark.parametrize(
-    "name,obj,data_output,display_output,encoder,metadata,display",
+    "name,obj,data_output,display_output,encoder,data_metadata,display_metadata,display",
     [
         (
             "foobarbaz",
@@ -154,7 +154,8 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
             },
             {u"text/plain": u"'foo,bar,baz'"},
             None,  # Save data as default
-            {u"scrapbook": {u"name": u"foobarbaz"}},
+            {u"scrapbook": {u"name": u"foobarbaz", "data": True, "display": False}},
+            {u"scrapbook": {u"name": u"foobarbaz", "data": False, "display": True}},
             True,  # Indicate display should also be available
         ),
         (
@@ -170,19 +171,28 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
             },
             {u"text/plain": u"['foo', 'bar', 'baz']"},
             "json",  # Save data as json
-            {u"scrapbook": {u"name": u"foobarbaz"}},
+            {u"scrapbook": {u"name": u"foobarbaz", "data": True, "display": False}},
+            {u"scrapbook": {u"name": u"foobarbaz", "data": False, "display": True}},
             True,  # Indicate display should also be available
         ),
     ],
 )
 @mock.patch("scrapbook.api.ip_display")
 def test_glue_plus_display(
-    mock_display, name, obj, data_output, display_output, encoder, metadata, display
+    mock_display,
+    name,
+    obj,
+    data_output,
+    display_output,
+    encoder,
+    data_metadata,
+    display_metadata,
+    display,
 ):
     glue(name, obj, encoder, display)
     mock_display.assert_has_calls(
         [
-            mock.call(data_output, metadata=metadata, raw=True),
-            mock.call(display_output, metadata=metadata, raw=True),
+            mock.call(data_output, metadata=data_metadata, raw=True),
+            mock.call(display_output, metadata=display_metadata, raw=True),
         ]
     )

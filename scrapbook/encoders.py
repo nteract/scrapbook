@@ -9,10 +9,7 @@ import json
 import collections
 
 from .scraps import scrap_to_payload
-from .exceptions import (
-    ScrapbookException,
-    ScrapbookMissingEncoder
-)
+from .exceptions import ScrapbookException, ScrapbookMissingEncoder
 
 
 class DataEncoderRegistry(collections.MutableMapping):

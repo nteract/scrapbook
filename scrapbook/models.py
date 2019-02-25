@@ -182,31 +182,6 @@ class Notebook(object):
             self._scraps = self._fetch_scraps()
         return self._scraps
 
-    def _output_is_scrap(self, output):
-        for namespace in ["scrapbook", "papermill"]:
-            if namespace in output.get("metadata", {}):
-                return True
-        for sig, payload in output.get("data", {}).items():
-            # Backwards compatibility for papermill
-            if any(sig.startswith(prefix) for prefix in SCRAP_PAYLOAD_PREFIXES):
-                return True
-        return False
-
-    def _fetch_raw_outputs(self):
-        outputs = []
-        for cell in self.cells:
-            for output in cell.get("outputs", []):
-                if self._output_is_scrap(output):
-                    outputs.append(output)
-        return outputs
-
-    @property
-    def scrap_outputs(self):
-        """list: a list of outputs associated with papermill found in the notebook"""
-        if self._outputs is None:
-            self._outputs = self._fetch_raw_outputs()
-        return self._outputs
-
     @property
     def cell_timing(self):
         """list: a list of cell execution timings in cell order"""
@@ -277,32 +252,12 @@ class Notebook(object):
             self.papermill_record_dataframe, ignore_index=True
         )
 
-    def _output_name(self, output):
-        # Check metadata
-        for namespace in ["scrapbook", "papermill"]:
-            if namespace in output.get("metadata", {}):
-                output_name = output.metadata[namespace].get("name")
-                if output_name:
-                    return output_name
-
-        # Fallback to data
-        for sig, payload in output.get("data", {}).items():
-            for name in (payload or {}).keys():
-                return name
-
-    def _rename_output(self, old_name, new_name, output):
-        renamed = copy.copy(output)
+    def _strip_scrapbook_metadata(self, metadata):
+        copied = copy.copy(metadata)
         # Strip old metadata name
-        renamed.metadata.pop("papermill", None)
-        renamed.metadata["scrapbook"] = output.metadata.get("scrapbook", {})
-        renamed.metadata["scrapbook"]["name"] = new_name
-
-        # Update any data available
-        if "data" in output and old_name in output["data"]:
-            renamed["data"] = copy.copy(renamed["data"])
-            renamed["data"][new_name] = renamed["data"].pop(old_name)
-
-        return renamed
+        copied.pop("papermill", None)
+        copied.pop("scrapbook", None)
+        return copied
 
     def reglue(self, name, new_name=None, raise_on_missing=True):
         """
@@ -318,6 +273,9 @@ class Notebook(object):
             indicator for if the resketch should print a message or error on missing snaps
 
         """
+        # Avoid circular imports
+        from .api import _data_payload_display, _display_payload_display
+
         if name not in self.scraps:
             if raise_on_missing:
                 raise ScrapbookException(
@@ -329,23 +287,22 @@ class Notebook(object):
                 )
         else:
             scrap = self.scraps[name]
+            if new_name:
+                scrap = scrap._replace(name=new_name)
             if scrap.data is not None:
-                data = {
-                    GLUE_PAYLOAD_FMT.format(encoder=scrap.encoder): scrap_to_payload(
-                        scrap
-                    )
-                }
-                metadata = {"scrapbook": dict(name=name)}
-                # Call raw display function
+                data, metadata = _data_payload_display(
+                    scrap.name, scrap_to_payload(scrap), scrap.encoder
+                )
                 ip_display(data, metadata=metadata, raw=True)
-
-        for output in self.scrap_outputs:
-            out_name = self._output_name(output)
-            if out_name == name:
-                # Always rename to update stale metadata structures
-                output = self._rename_output(name, new_name or name, output)
-                # Call raw display function on output
-                ip_display(output.data, metadata=output.metadata, raw=True)
+            if scrap.display is not None:
+                scrap_data = scrap.display.get("data", {})
+                scrap_metadata = self._strip_scrapbook_metadata(
+                    scrap.display.get("metadata", {})
+                )
+                data, metadata = _display_payload_display(
+                    scrap.name, scrap_data, scrap_metadata
+                )
+                ip_display(data, metadata=metadata, raw=True)
 
 
 class Scrapbook(collections.MutableMapping):
@@ -414,7 +371,9 @@ class Scrapbook(collections.MutableMapping):
         """dict: a dictionary of the merged notebook scraps."""
         return Scraps(merge_dicts(nb.scraps for nb in self.notebooks))
 
-    def scraps_report(self, scrap_names=None, notebook_names=None, include_data=False, headers=True):
+    def scraps_report(
+        self, scrap_names=None, notebook_names=None, include_data=False, headers=True
+    ):
         """
         Display scraps as markdown structed outputs.
 
@@ -429,6 +388,7 @@ class Scrapbook(collections.MutableMapping):
         header : bool (default: True)
             indicator for if the scraps should render with a header
         """
+
         def trim_repr(data):
             # Used to generate a smallish version of data for display purposes
             if isinstance(data, integer_types):
@@ -437,7 +397,7 @@ class Scrapbook(collections.MutableMapping):
             if not isinstance(data, string_types):
                 data_str = repr(data)
             if len(data_str) > 102:
-                data_str = data_str[:100] + '...'
+                data_str = data_str[:100] + "..."
             return data_str
 
         if isinstance(scrap_names, string_types):
@@ -468,4 +428,6 @@ class Scrapbook(collections.MutableMapping):
                             ip_display(Markdown("#### {}".format(name)))
                             ip_display(trim_repr(scrap.data))
                         else:
-                            ip_display('{}: {}'.format(scrap.name, trim_repr(scrap.data)))
+                            ip_display(
+                                "{}: {}".format(scrap.name, trim_repr(scrap.data))
+                            )
