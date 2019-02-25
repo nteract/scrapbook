@@ -122,6 +122,33 @@ def test_reglue_scrap(mock_display, notebook_result):
     )
 
 
+@mock.patch("scrapbook.models.ip_display")
+def test_reglue_display_unattached(mock_display, notebook_result):
+    notebook_result.reglue("output", unattached=True)
+    mock_display.assert_called_once_with(
+        {"text/plain": "'Hello World!'"},
+        metadata={},
+        raw=True,
+    )
+
+
+@mock.patch("scrapbook.models.ip_display")
+def test_reglue_scrap_unattached(mock_display, notebook_result):
+    notebook_result.reglue("one", unattached=True)
+    mock_display.assert_called_once_with(
+        {
+            "application/scrapbook.scrap.json+json": {
+                "name": "one",
+                "data": 1,
+                "encoder": "json",
+                "version": 1,
+            }
+        },
+        metadata={},
+        raw=True,
+    )
+
+
 def test_missing_reglue(notebook_result):
     with pytest.raises(ScrapbookException):
         notebook_result.reglue("foo")

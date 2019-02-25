@@ -254,7 +254,7 @@ class Notebook(object):
         copied.pop("scrapbook", None)
         return copied
 
-    def reglue(self, name, new_name=None, raise_on_missing=True):
+    def reglue(self, name, new_name=None, raise_on_missing=True, unattached=False):
         """
         Display output from a named source of the notebook.
 
@@ -266,7 +266,8 @@ class Notebook(object):
             replacement name for scrap
         raise_error : bool
             indicator for if the resketch should print a message or error on missing snaps
-
+        unattached : bool
+            indicator for rendering without making the display recallable as scrapbook data
         """
         # Avoid circular imports
         from .api import _data_payload_display, _display_payload_display
@@ -288,6 +289,11 @@ class Notebook(object):
                 data, metadata = _data_payload_display(
                     scrap.name, scrap_to_payload(scrap), scrap.encoder
                 )
+                # A little non-sensical in this case, but when regluing unattached
+                # displays you don't want the data being associatable later on
+                if unattached:
+                    # Remove 'scrapbook' from keys if we want it unassociated
+                    metadata = self._strip_scrapbook_metadata(metadata)
                 ip_display(data, metadata=metadata, raw=True)
             if scrap.display is not None:
                 scrap_data = scrap.display.get("data", {})
@@ -297,6 +303,9 @@ class Notebook(object):
                 data, metadata = _display_payload_display(
                     scrap.name, scrap_data, scrap_metadata
                 )
+                if unattached:
+                    # Remove 'scrapbook' from keys if we want it unassociated
+                    metadata = self._strip_scrapbook_metadata(metadata)
                 ip_display(data, metadata=metadata, raw=True)
 
 
@@ -386,9 +395,6 @@ class Scrapbook(collections.MutableMapping):
 
         def trim_repr(data):
             # Used to generate a smallish version of data for display purposes
-            if isinstance(data, integer_types):
-                return data
-
             if not isinstance(data, string_types):
                 data_str = repr(data)
             if len(data_str) > 102:
@@ -414,7 +420,7 @@ class Scrapbook(collections.MutableMapping):
             for name in scrap_names or notebook.scraps.display_scraps.keys():
                 if headers:
                     ip_display(Markdown("#### {}".format(name)))
-                notebook.reglue(name, raise_on_missing=False)
+                notebook.reglue(name, raise_on_missing=False, unattached=True)
 
             if include_data:
                 for name, scrap in scrap_names or notebook.scraps.data_scraps.items():
