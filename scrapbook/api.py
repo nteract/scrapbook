@@ -89,7 +89,7 @@ def glue(name, scrap, encoder=None, display=None):
                 encoder_registry.encode(Scrap(name, scrap, encoder))
             )
         }
-        metadata = {"scrapbook": dict(name=name)}
+        metadata = {"scrapbook": dict(name=name, data=True, display=False)}
         # IPython.display.display takes a tuple of objects as first parameter
         # `http://ipython.readthedocs.io/en/stable/api/generated/IPython.display.html#IPython.display.display`
         ip_display(data, metadata=metadata, raw=True)
@@ -104,7 +104,7 @@ def glue(name, scrap, encoder=None, display=None):
         data, metadata = IPython.core.formatters.format_display_data(
             scrap, **display_kwargs
         )
-        metadata["scrapbook"] = dict(name=name)
+        metadata["scrapbook"] = dict(name=name, data=False, display=True)
         ip_display(data, metadata=metadata, raw=True)
 
 

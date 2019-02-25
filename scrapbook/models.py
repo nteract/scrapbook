@@ -13,6 +13,8 @@ import pandas as pd
 
 from six import string_types
 from collections import OrderedDict
+from six import string_types, integer_types
+from collections import OrderedDict
 from IPython.display import display as ip_display, Markdown
 
 # We lean on papermill's readers to connect to remote stores
@@ -128,12 +130,16 @@ class Notebook(object):
     def _extract_output_displays(self, output):
         output_displays = OrderedDict()
         # Backwards compatibility for papermill
-        for namespace in ["scrapbook", "papermill"]:
-            if namespace in output.get("metadata", {}):
-                output_name = output.metadata[namespace].get("name")
-                if output_name:
-                    output_displays[output_name] = output
-                    break
+        metadata = output.get("metadata", {})
+        if "papermill" in metadata:
+            output_name = output.metadata["papermill"].get("name")
+            if output_name:
+                output_displays[output_name] = output
+        # Only grab outputs that are displays
+        elif metadata.get("scrapbook", {}).get("display"):
+            output_name = output.metadata["scrapbook"].get("name")
+            if output_name:
+                output_displays[output_name] = output
 
         return output_displays
 
@@ -406,9 +412,9 @@ class Scrapbook(collections.MutableMapping):
     @property
     def scraps(self):
         """dict: a dictionary of the merged notebook scraps."""
-        return merge_dicts(nb.scraps for nb in self.notebooks)
+        return Scraps(merge_dicts(nb.scraps for nb in self.notebooks))
 
-    def scraps_report(self, scrap_names=None, notebook_names=None, header=True):
+    def scraps_report(self, scrap_names=None, notebook_names=None, include_data=False, headers=True):
         """
         Display scraps as markdown structed outputs.
 
@@ -418,9 +424,22 @@ class Scrapbook(collections.MutableMapping):
             the scraps to display as reported outputs
         notebook_names : str or iterable[str] (optional)
             notebook names to use in filtering on scraps to report
+        include_data : bool (default: False)
+            indicator that data-only scraps should be reported
         header : bool (default: True)
             indicator for if the scraps should render with a header
         """
+        def trim_repr(data):
+            # Used to generate a smallish version of data for display purposes
+            if isinstance(data, integer_types):
+                return data
+
+            if not isinstance(data, string_types):
+                data_str = repr(data)
+            if len(data_str) > 102:
+                data_str = data_str[:100] + '...'
+            return data_str
+
         if isinstance(scrap_names, string_types):
             scrap_names = [scrap_names]
         scrap_names = set(scrap_names or [])
@@ -432,12 +451,21 @@ class Scrapbook(collections.MutableMapping):
 
         for i, nb_name in enumerate(notebook_names):
             notebook = self[nb_name]
-            if header:
+            if headers:
                 if i > 0:
                     ip_display(Markdown("<hr>"))  # tag between outputs
                 ip_display(Markdown("### {}".format(nb_name)))
 
             for name in scrap_names or notebook.scraps.display_scraps.keys():
-                if header:
+                if headers:
                     ip_display(Markdown("#### {}".format(name)))
                 notebook.reglue(name, raise_on_missing=False)
+
+            if include_data:
+                for name, scrap in scrap_names or notebook.scraps.data_scraps.items():
+                    if scrap.display is None and scrap.data is not None:
+                        if headers:
+                            ip_display(Markdown("#### {}".format(name)))
+                            ip_display(trim_repr(scrap.data))
+                        else:
+                            ip_display('{}: {}'.format(scrap.name, trim_repr(scrap.data)))
