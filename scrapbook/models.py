@@ -287,10 +287,9 @@ class Notebook(object):
                 data, metadata = _prepare_ipy_data_format(
                     scrap.name, scrap_to_payload(scrap), scrap.encoder
                 )
-                # A little non-sensical in this case, but when regluing unattached
-                # displays you don't want the data being associatable later on
+                # Skip saving data for later regluing and remove 'scrapbook'
+                # from keys, when unattached
                 if unattached:
-                    # Remove 'scrapbook' from keys if we want it unassociated
                     metadata = self._strip_scrapbook_metadata(metadata)
                 ip_display(data, metadata=metadata, raw=True)
             if scrap.display is not None:
@@ -392,7 +391,7 @@ class Scrapbook(collections.MutableMapping):
         """
 
         def trim_repr(data):
-            # Used to generate a smallish version of data for display purposes
+            # Generate a small data representation for display purposes
             if not isinstance(data, string_types):
                 data_str = repr(data)
             if len(data_str) > 102:
