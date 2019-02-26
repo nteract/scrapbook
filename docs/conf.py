@@ -48,7 +48,7 @@ author = "nteract team"
 import scrapbook
 
 # The short X.Y version.
-version = '.'.join(scrapbook.__version__.split('.')[0:2])
+version = ".".join(scrapbook.__version__.split(".")[0:2])
 
 # The full version, including alpha/beta/rc tags.
 release = scrapbook.__version__

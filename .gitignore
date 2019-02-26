@@ -108,3 +108,4 @@ ENV/
 
 # Binder example
 binder/*run*.ipynb
+binder/outcomes/*.ipynb

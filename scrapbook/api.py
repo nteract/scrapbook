@@ -10,6 +10,7 @@ import os
 import IPython
 
 from six import string_types
+
 from IPython.display import display as ip_display
 
 # We lean on papermill's readers to connect to remote stores
@@ -84,14 +85,11 @@ def glue(name, scrap, encoder=None, display=None):
 
     # Only store data that can be stored (purely display scraps can skip)
     if encoder != "display":
-        data = {
-            GLUE_PAYLOAD_FMT.format(encoder=encoder): scrap_to_payload(
-                encoder_registry.encode(Scrap(name, scrap, encoder))
-            )
-        }
-        metadata = {"scrapbook": dict(name=name)}
-        # IPython.display.display takes a tuple of objects as first parameter
-        # `http://ipython.readthedocs.io/en/stable/api/generated/IPython.display.html#IPython.display.display`
+        data, metadata = _prepare_ipy_data_format(
+            name,
+            scrap_to_payload(encoder_registry.encode(Scrap(name, scrap, encoder))),
+            encoder,
+        )
         ip_display(data, metadata=metadata, raw=True)
 
     # Only display data that is marked for display
@@ -101,11 +99,24 @@ def glue(name, scrap, encoder=None, display=None):
             display_kwargs = {"include": display}
         elif isinstance(display, dict):
             display_kwargs = display
-        data, metadata = IPython.core.formatters.format_display_data(
+        raw_data, raw_metadata = IPython.core.formatters.format_display_data(
             scrap, **display_kwargs
         )
-        metadata["scrapbook"] = dict(name=name)
+        data, metadata = _prepare_ipy_display_format(name, raw_data, raw_metadata)
         ip_display(data, metadata=metadata, raw=True)
+
+
+def _prepare_ipy_data_format(name, payload, encoder):
+    data = {GLUE_PAYLOAD_FMT.format(encoder=encoder): payload}
+    metadata = {"scrapbook": dict(name=name, data=True, display=False)}
+    # We don't display immediately here as this makes mocking difficult
+    return data, metadata
+
+
+def _prepare_ipy_display_format(name, payload, metadata):
+    metadata["scrapbook"] = dict(name=name, data=False, display=True)
+    # We don't display immediately here as this makes mocking difficult
+    return payload, metadata
 
 
 def read_notebook(path):

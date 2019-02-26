@@ -19,12 +19,7 @@ from IPython.display import display as ip_display, Markdown
 from papermill.iorw import papermill_io
 
 from .scraps import Scrap, Scraps, payload_to_scrap, scrap_to_payload
-from .schemas import (
-    GLUE_PAYLOAD_FMT,
-    GLUE_PAYLOAD_PREFIX,
-    RECORD_PAYLOAD_PREFIX,
-    SCRAP_PAYLOAD_PREFIXES,
-)
+from .schemas import GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX
 from .encoders import registry as encoder_registry
 from .exceptions import ScrapbookException
 
@@ -128,12 +123,16 @@ class Notebook(object):
     def _extract_output_displays(self, output):
         output_displays = OrderedDict()
         # Backwards compatibility for papermill
-        for namespace in ["scrapbook", "papermill"]:
-            if namespace in output.get("metadata", {}):
-                output_name = output.metadata[namespace].get("name")
-                if output_name:
-                    output_displays[output_name] = output
-                    break
+        metadata = output.get("metadata", {})
+        if "papermill" in metadata:
+            output_name = output.metadata["papermill"].get("name")
+            if output_name:
+                output_displays[output_name] = output
+        # Only grab outputs that are displays
+        elif metadata.get("scrapbook", {}).get("display"):
+            output_name = output.metadata["scrapbook"].get("name")
+            if output_name:
+                output_displays[output_name] = output
 
         return output_displays
 
@@ -175,31 +174,6 @@ class Notebook(object):
         if self._scraps is None:
             self._scraps = self._fetch_scraps()
         return self._scraps
-
-    def _output_is_scrap(self, output):
-        for namespace in ["scrapbook", "papermill"]:
-            if namespace in output.get("metadata", {}):
-                return True
-        for sig, payload in output.get("data", {}).items():
-            # Backwards compatibility for papermill
-            if any(sig.startswith(prefix) for prefix in SCRAP_PAYLOAD_PREFIXES):
-                return True
-        return False
-
-    def _fetch_raw_outputs(self):
-        outputs = []
-        for cell in self.cells:
-            for output in cell.get("outputs", []):
-                if self._output_is_scrap(output):
-                    outputs.append(output)
-        return outputs
-
-    @property
-    def scrap_outputs(self):
-        """list: a list of outputs associated with papermill found in the notebook"""
-        if self._outputs is None:
-            self._outputs = self._fetch_raw_outputs()
-        return self._outputs
 
     @property
     def cell_timing(self):
@@ -271,34 +245,14 @@ class Notebook(object):
             self.papermill_record_dataframe, ignore_index=True
         )
 
-    def _output_name(self, output):
-        # Check metadata
-        for namespace in ["scrapbook", "papermill"]:
-            if namespace in output.get("metadata", {}):
-                output_name = output.metadata[namespace].get("name")
-                if output_name:
-                    return output_name
-
-        # Fallback to data
-        for sig, payload in output.get("data", {}).items():
-            for name in (payload or {}).keys():
-                return name
-
-    def _rename_output(self, old_name, new_name, output):
-        renamed = copy.copy(output)
+    def _strip_scrapbook_metadata(self, metadata):
+        copied = copy.copy(metadata)
         # Strip old metadata name
-        renamed.metadata.pop("papermill", None)
-        renamed.metadata["scrapbook"] = output.metadata.get("scrapbook", {})
-        renamed.metadata["scrapbook"]["name"] = new_name
+        copied.pop("papermill", None)
+        copied.pop("scrapbook", None)
+        return copied
 
-        # Update any data available
-        if "data" in output and old_name in output["data"]:
-            renamed["data"] = copy.copy(renamed["data"])
-            renamed["data"][new_name] = renamed["data"].pop(old_name)
-
-        return renamed
-
-    def reglue(self, name, new_name=None, raise_on_missing=True):
+    def reglue(self, name, new_name=None, raise_on_missing=True, unattached=False):
         """
         Display output from a named source of the notebook.
 
@@ -310,8 +264,12 @@ class Notebook(object):
             replacement name for scrap
         raise_error : bool
             indicator for if the resketch should print a message or error on missing snaps
-
+        unattached : bool
+            indicator for rendering without making the display recallable as scrapbook data
         """
+        # Avoid circular imports
+        from .api import _prepare_ipy_data_format, _prepare_ipy_display_format
+
         if name not in self.scraps:
             if raise_on_missing:
                 raise ScrapbookException(
@@ -323,23 +281,29 @@ class Notebook(object):
                 )
         else:
             scrap = self.scraps[name]
+            if new_name:
+                scrap = scrap._replace(name=new_name)
             if scrap.data is not None:
-                data = {
-                    GLUE_PAYLOAD_FMT.format(encoder=scrap.encoder): scrap_to_payload(
-                        scrap
-                    )
-                }
-                metadata = {"scrapbook": dict(name=name)}
-                # Call raw display function
+                data, metadata = _prepare_ipy_data_format(
+                    scrap.name, scrap_to_payload(scrap), scrap.encoder
+                )
+                # Skip saving data for later regluing and remove 'scrapbook'
+                # from keys, when unattached
+                if unattached:
+                    metadata = self._strip_scrapbook_metadata(metadata)
                 ip_display(data, metadata=metadata, raw=True)
-
-        for output in self.scrap_outputs:
-            out_name = self._output_name(output)
-            if out_name == name:
-                # Always rename to update stale metadata structures
-                output = self._rename_output(name, new_name or name, output)
-                # Call raw display function on output
-                ip_display(output.data, metadata=output.metadata, raw=True)
+            if scrap.display is not None:
+                scrap_data = scrap.display.get("data", {})
+                scrap_metadata = self._strip_scrapbook_metadata(
+                    scrap.display.get("metadata", {})
+                )
+                data, metadata = _prepare_ipy_display_format(
+                    scrap.name, scrap_data, scrap_metadata
+                )
+                if unattached:
+                    # Remove 'scrapbook' from keys if we want it unassociated
+                    metadata = self._strip_scrapbook_metadata(metadata)
+                ip_display(data, metadata=metadata, raw=True)
 
 
 class Scrapbook(collections.MutableMapping):
@@ -406,9 +370,11 @@ class Scrapbook(collections.MutableMapping):
     @property
     def scraps(self):
         """dict: a dictionary of the merged notebook scraps."""
-        return merge_dicts(nb.scraps for nb in self.notebooks)
+        return Scraps(merge_dicts(nb.scraps for nb in self.notebooks))
 
-    def scraps_report(self, scrap_names=None, notebook_names=None, header=True):
+    def scraps_report(
+        self, scrap_names=None, notebook_names=None, include_data=False, headers=True
+    ):
         """
         Display scraps as markdown structed outputs.
 
@@ -418,9 +384,20 @@ class Scrapbook(collections.MutableMapping):
             the scraps to display as reported outputs
         notebook_names : str or iterable[str] (optional)
             notebook names to use in filtering on scraps to report
+        include_data : bool (default: False)
+            indicator that data-only scraps should be reported
         header : bool (default: True)
             indicator for if the scraps should render with a header
         """
+
+        def trim_repr(data):
+            # Generate a small data representation for display purposes
+            if not isinstance(data, string_types):
+                data_str = repr(data)
+            if len(data_str) > 102:
+                data_str = data_str[:100] + "..."
+            return data_str
+
         if isinstance(scrap_names, string_types):
             scrap_names = [scrap_names]
         scrap_names = set(scrap_names or [])
@@ -432,12 +409,23 @@ class Scrapbook(collections.MutableMapping):
 
         for i, nb_name in enumerate(notebook_names):
             notebook = self[nb_name]
-            if header:
+            if headers:
                 if i > 0:
                     ip_display(Markdown("<hr>"))  # tag between outputs
                 ip_display(Markdown("### {}".format(nb_name)))
 
             for name in scrap_names or notebook.scraps.display_scraps.keys():
-                if header:
+                if headers:
                     ip_display(Markdown("#### {}".format(name)))
-                notebook.reglue(name, raise_on_missing=False)
+                notebook.reglue(name, raise_on_missing=False, unattached=True)
+
+            if include_data:
+                for name, scrap in scrap_names or notebook.scraps.data_scraps.items():
+                    if scrap.display is None and scrap.data is not None:
+                        if headers:
+                            ip_display(Markdown("#### {}".format(name)))
+                            ip_display(trim_repr(scrap.data))
+                        else:
+                            ip_display(
+                                "{}: {}".format(scrap.name, trim_repr(scrap.data))
+                            )

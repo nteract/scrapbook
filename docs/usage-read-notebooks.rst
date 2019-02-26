@@ -53,6 +53,13 @@ or disable an overall header for the display.
       header=False
     )
 
+By default the report will only populate with visual elements. To also
+report on data elements set include_data.
+
+.. code:: python
+
+    book.scraps_report(include_data=True)
+
 papermill support
 -----------------
 

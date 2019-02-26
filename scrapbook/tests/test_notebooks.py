@@ -72,7 +72,9 @@ def test_display_scraps(notebook_result):
         },
         "one_only": {
             "data": {"text/plain": "'Just here!'"},
-            "metadata": {"scrapbook": {"name": "one_only"}},
+            "metadata": {
+                "scrapbook": {"name": "one_only", "data": False, "display": True}
+            },
             "output_type": "display_data",
         },
     }
@@ -98,7 +100,7 @@ def test_reglue_display(mock_display, notebook_result):
     notebook_result.reglue("output")
     mock_display.assert_called_once_with(
         {"text/plain": "'Hello World!'"},
-        metadata={"scrapbook": {"name": "output"}},
+        metadata={"scrapbook": {"name": "output", "data": False, "display": True}},
         raw=True,
     )
 
@@ -115,7 +117,32 @@ def test_reglue_scrap(mock_display, notebook_result):
                 "version": 1,
             }
         },
-        metadata={"scrapbook": {"name": "one"}},
+        metadata={"scrapbook": {"name": "one", "data": True, "display": False}},
+        raw=True,
+    )
+
+
+@mock.patch("scrapbook.models.ip_display")
+def test_reglue_display_unattached(mock_display, notebook_result):
+    notebook_result.reglue("output", unattached=True)
+    mock_display.assert_called_once_with(
+        {"text/plain": "'Hello World!'"}, metadata={}, raw=True
+    )
+
+
+@mock.patch("scrapbook.models.ip_display")
+def test_reglue_scrap_unattached(mock_display, notebook_result):
+    notebook_result.reglue("one", unattached=True)
+    mock_display.assert_called_once_with(
+        {
+            "application/scrapbook.scrap.json+json": {
+                "name": "one",
+                "data": 1,
+                "encoder": "json",
+                "version": 1,
+            }
+        },
+        metadata={},
         raw=True,
     )
 
@@ -138,7 +165,7 @@ def test_reglue_rename(mock_display, notebook_result):
     notebook_result.reglue("output", "new_output")
     mock_display.assert_called_once_with(
         {"text/plain": "'Hello World!'"},
-        metadata={"scrapbook": {"name": "new_output"}},
+        metadata={"scrapbook": {"name": "new_output", "data": False, "display": True}},
         raw=True,
     )
 
@@ -220,13 +247,11 @@ def test_papermill_dataframe(notebook_result):
 def test_no_cells():
     nb = Notebook(new_notebook(cells=[]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.scrap_outputs == []
 
 
 def test_no_outputs():
     nb = Notebook(new_notebook(cells=[new_code_cell("test", outputs=[])]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.scrap_outputs == []
 
 
 def test_empty_metadata():
@@ -234,7 +259,6 @@ def test_empty_metadata():
     raw_nb = new_notebook(cells=[new_code_cell("test", outputs=[output])])
     nb = Notebook(raw_nb)
     assert nb.scraps == collections.OrderedDict()
-    assert nb.scrap_outputs == []
 
 
 def test_metadata_but_empty_content():
@@ -242,12 +266,8 @@ def test_metadata_but_empty_content():
     raw_nb = new_notebook(cells=[new_code_cell("test", outputs=[output])])
     nb = Notebook(raw_nb)
     assert nb.scraps == collections.OrderedDict()
-    assert nb.scrap_outputs == [
-        {"data": {}, "metadata": {"scrapbook": {}}, "output_type": "display_data"}
-    ]
 
 
 def test_markdown():
     nb = Notebook(new_notebook(cells=[new_markdown_cell("this is a test.")]))
     assert nb.scraps == collections.OrderedDict()
-    assert nb.scrap_outputs == []

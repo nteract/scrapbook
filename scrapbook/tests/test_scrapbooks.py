@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import six
 import mock
 import pytest
 
@@ -88,7 +89,13 @@ def test_notebook_scraps(notebook_collection):
                                 encoder="display",
                                 display={
                                     "data": {"text/plain": "'Just here!'"},
-                                    "metadata": {"scrapbook": {"name": "one_only"}},
+                                    "metadata": {
+                                        "scrapbook": {
+                                            "name": "one_only",
+                                            "data": False,
+                                            "display": True,
+                                        }
+                                    },
                                     "output_type": "display_data",
                                 },
                             ),
@@ -147,7 +154,13 @@ def test_notebook_scraps(notebook_collection):
                                 encoder="display",
                                 display={
                                     "data": {"text/plain": "'Just here!'"},
-                                    "metadata": {"scrapbook": {"name": "two_only"}},
+                                    "metadata": {
+                                        "scrapbook": {
+                                            "name": "two_only",
+                                            "data": False,
+                                            "display": True,
+                                        }
+                                    },
                                     "output_type": "display_data",
                                 },
                             ),
@@ -190,7 +203,13 @@ def test_scraps(notebook_collection):
                     encoder="display",
                     display={
                         "data": {"text/plain": "'Just here!'"},
-                        "metadata": {"scrapbook": {"name": "one_only"}},
+                        "metadata": {
+                            "scrapbook": {
+                                "name": "one_only",
+                                "data": False,
+                                "display": True,
+                            }
+                        },
                         "output_type": "display_data",
                     },
                 ),
@@ -204,7 +223,13 @@ def test_scraps(notebook_collection):
                     encoder="display",
                     display={
                         "data": {"text/plain": "'Just here!'"},
-                        "metadata": {"scrapbook": {"name": "two_only"}},
+                        "metadata": {
+                            "scrapbook": {
+                                "name": "two_only",
+                                "data": False,
+                                "display": True,
+                            }
+                        },
                         "output_type": "display_data",
                     },
                 ),
@@ -254,63 +279,88 @@ def test_scraps_report(mock_display, notebook_collection):
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call(
-                {u"text/plain": u"'Hello World!'"},
-                # We re-translate the metadata from older messages
-                metadata={u"scrapbook": {u"name": u"output"}},
-                raw=True,
-            ),
+            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### one_only")),
-            mock.call(
-                {u"text/plain": u"'Just here!'"},
-                metadata={u"scrapbook": {u"name": u"one_only"}},
-                raw=True,
-            ),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("<hr>")),
             mock.call(AnyMarkdownWith("### result2")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call(
-                {u"text/plain": u"'Hello World 2!'"},
-                # We re-translate the metadata from older messages
-                metadata={u"scrapbook": {u"name": u"output"}},
-                raw=True,
-            ),
+            mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### two_only")),
-            mock.call(
-                {u"text/plain": u"'Just here!'"},
-                metadata={u"scrapbook": {u"name": u"two_only"}},
-                raw=True,
-            ),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
         ]
     )
 
 
 @mock.patch("scrapbook.models.ip_display")
-def test_scraps_report_no_header(mock_display, notebook_collection):
-    notebook_collection.scraps_report(header=None)
+def test_scraps_report_no_headers(mock_display, notebook_collection):
+    notebook_collection.scraps_report(headers=None)
     mock_display.assert_has_calls(
         [
+            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+        ]
+    )
+
+
+@mock.patch("scrapbook.models.ip_display")
+def test_scraps_report_with_data(mock_display, notebook_collection):
+    notebook_collection.scraps_report(include_data=True)
+    mock_display.assert_has_calls(
+        [
+            mock.call(AnyMarkdownWith("### result1")),
+            mock.call(AnyMarkdownWith("#### output")),
+            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
+            mock.call(AnyMarkdownWith("#### one_only")),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call(AnyMarkdownWith("#### one")),
+            mock.call(u"1"),
+            mock.call(AnyMarkdownWith("#### number")),
+            mock.call(u"1"),
+            mock.call(AnyMarkdownWith("#### list")),
+            mock.call(u"[1, 2, 3]"),
+            mock.call(AnyMarkdownWith("#### dict")),
+            mock.call(u"{'a': 1, 'b': 2}" if six.PY3 else u"{u'a': 1, u'b': 2}"),
+            mock.call(AnyMarkdownWith("<hr>")),
+            mock.call(AnyMarkdownWith("### result2")),
+            mock.call(AnyMarkdownWith("#### output")),
+            mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
+            mock.call(AnyMarkdownWith("#### two_only")),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call(AnyMarkdownWith("#### two")),
+            mock.call(u"2"),
+            mock.call(AnyMarkdownWith("#### number")),
+            mock.call(u"2"),
+            mock.call(AnyMarkdownWith("#### list")),
+            mock.call(u"[4, 5, 6]"),
+            mock.call(AnyMarkdownWith("#### dict")),
+            mock.call(u"{'a': 3, 'b': 4}" if six.PY3 else u"{u'a': 3, u'b': 4}"),
+        ]
+    )
+
+
+@mock.patch("scrapbook.models.ip_display")
+def test_scraps_report_with_data_no_headers(mock_display, notebook_collection):
+    notebook_collection.scraps_report(headers=None, include_data=True)
+    mock_display.assert_has_calls(
+        [
+            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call(u"one: 1"),
+            mock.call(u"number: 1"),
+            mock.call(u"list: [1, 2, 3]"),
             mock.call(
-                {u"text/plain": u"'Hello World!'"},
-                # We re-translate the metadata from older messages
-                metadata={u"scrapbook": {u"name": u"output"}},
-                raw=True,
+                u"dict: {'a': 1, 'b': 2}" if six.PY3 else u"dict: {u'a': 1, u'b': 2}"
             ),
+            mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call(u"two: 2"),
+            mock.call(u"number: 2"),
+            mock.call(u"list: [4, 5, 6]"),
             mock.call(
-                {u"text/plain": u"'Just here!'"},
-                metadata={"scrapbook": {"name": "one_only"}},
-                raw=True,
-            ),
-            mock.call(
-                {u"text/plain": u"'Hello World 2!'"},
-                # We re-translate the metadata from older messages
-                metadata={u"scrapbook": {u"name": u"output"}},
-                raw=True,
-            ),
-            mock.call(
-                {u"text/plain": u"'Just here!'"},
-                metadata={u"scrapbook": {u"name": u"two_only"}},
-                raw=True,
+                u"dict: {'a': 3, 'b': 4}" if six.PY3 else u"dict: {u'a': 3, u'b': 4}"
             ),
         ]
     )
@@ -323,21 +373,11 @@ def test_scraps_report_with_scrap_list_names(mock_display, notebook_collection):
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call(
-                {"text/plain": "'Hello World!'"},
-                # We re-translate the metadata from older messages
-                metadata={"scrapbook": {"name": "output"}},
-                raw=True,
-            ),
+            mock.call({"text/plain": "'Hello World!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("<hr>")),
             mock.call(AnyMarkdownWith("### result2")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call(
-                {"text/plain": "'Hello World 2!'"},
-                # We re-translate the metadata from older messages
-                metadata={"scrapbook": {"name": "output"}},
-                raw=True,
-            ),
+            mock.call({"text/plain": "'Hello World 2!'"}, metadata={}, raw=True),
         ]
     )
 
@@ -349,11 +389,7 @@ def test_scraps_report_with_scrap_string_name(mock_display, notebook_collection)
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### one_only")),
-            mock.call(
-                {"text/plain": "'Just here!'"},
-                metadata={"scrapbook": {"name": "one_only"}},
-                raw=True,
-            ),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("<hr>")),
             mock.call(AnyMarkdownWith("### result2")),
             mock.call(AnyMarkdownWith("#### one_only")),
@@ -369,18 +405,9 @@ def test_scraps_report_with_notebook_names(mock_display, notebook_collection):
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call(
-                {u"text/plain": u"'Hello World!'"},
-                # We re-translate the metadata from older messages
-                metadata={u"scrapbook": {u"name": u"output"}},
-                raw=True,
-            ),
+            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### one_only")),
-            mock.call(
-                {u"text/plain": u"'Just here!'"},
-                metadata={u"scrapbook": {u"name": u"one_only"}},
-                raw=True,
-            ),
+            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
         ]
     )
 
@@ -394,11 +421,6 @@ def test_scraps_report_with_scrap_and_notebook_names(mock_display, notebook_coll
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call(
-                {u"text/plain": u"'Hello World!'"},
-                # We re-translate the metadata from older messages
-                metadata={u"scrapbook": {u"name": u"output"}},
-                raw=True,
-            ),
+            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
         ]
     )
