@@ -351,13 +351,17 @@ def test_scraps_report_with_data_no_headers(mock_display, notebook_collection):
             mock.call(u"one: 1"),
             mock.call(u"number: 1"),
             mock.call(u"list: [1, 2, 3]"),
-            mock.call(u"dict: {'a': 1, 'b': 2}" if six.PY3 else u"dict: {u'a': 1, u'b': 2}"),
+            mock.call(
+                u"dict: {'a': 1, 'b': 2}" if six.PY3 else u"dict: {u'a': 1, u'b': 2}"
+            ),
             mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
             mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
             mock.call(u"two: 2"),
             mock.call(u"number: 2"),
             mock.call(u"list: [4, 5, 6]"),
-            mock.call(u"dict: {'a': 3, 'b': 4}" if six.PY3 else u"dict: {u'a': 3, u'b': 4}"),
+            mock.call(
+                u"dict: {'a': 3, 'b': 4}" if six.PY3 else u"dict: {u'a': 3, u'b': 4}"
+            ),
         ]
     )
 

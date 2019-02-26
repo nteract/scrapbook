@@ -11,12 +11,12 @@ import IPython
 
 from six import string_types
 
-# from IPython.display import display as ip_display
+from IPython.display import display as ip_display
 
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
 
-from .models import Notebook, Scrapbook, ip_display
+from .models import Notebook, Scrapbook
 from .scraps import Scrap, scrap_to_payload
 from .schemas import GLUE_PAYLOAD_FMT
 from .encoders import registry as encoder_registry
@@ -85,43 +85,35 @@ def glue(name, scrap, encoder=None, display=None):
 
     # Only store data that can be stored (purely display scraps can skip)
     if encoder != "display":
-        data, metadata = _data_scrap_display(name, scrap, encoder)
+        data, metadata = _prepare_ipy_data_format(
+            name,
+            scrap_to_payload(encoder_registry.encode(Scrap(name, scrap, encoder))),
+            encoder,
+        )
         ip_display(data, metadata=metadata, raw=True)
 
     # Only display data that is marked for display
     if display:
-        data, metadata = _display_scrap_display(name, scrap, display)
+        display_kwargs = {}
+        if isinstance(display, (list, tuple)):
+            display_kwargs = {"include": display}
+        elif isinstance(display, dict):
+            display_kwargs = display
+        raw_data, raw_metadata = IPython.core.formatters.format_display_data(
+            scrap, **display_kwargs
+        )
+        data, metadata = _prepare_ipy_display_format(name, raw_data, raw_metadata)
         ip_display(data, metadata=metadata, raw=True)
 
 
-def _data_scrap_display(name, scrap, encoder):
-    return _data_payload_display(
-        name,
-        scrap_to_payload(encoder_registry.encode(Scrap(name, scrap, encoder))),
-        encoder,
-    )
-
-
-def _data_payload_display(name, payload, encoder):
+def _prepare_ipy_data_format(name, payload, encoder):
     data = {GLUE_PAYLOAD_FMT.format(encoder=encoder): payload}
     metadata = {"scrapbook": dict(name=name, data=True, display=False)}
     # We don't display immediately here as this makes mocking difficult
     return data, metadata
 
 
-def _display_scrap_display(name, scrap, display):
-    display_kwargs = {}
-    if isinstance(display, (list, tuple)):
-        display_kwargs = {"include": display}
-    elif isinstance(display, dict):
-        display_kwargs = display
-    data, metadata = IPython.core.formatters.format_display_data(
-        scrap, **display_kwargs
-    )
-    return _display_payload_display(name, data, metadata)
-
-
-def _display_payload_display(name, payload, metadata):
+def _prepare_ipy_display_format(name, payload, metadata):
     metadata["scrapbook"] = dict(name=name, data=False, display=True)
     # We don't display immediately here as this makes mocking difficult
     return payload, metadata

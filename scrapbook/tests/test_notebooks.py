@@ -126,9 +126,7 @@ def test_reglue_scrap(mock_display, notebook_result):
 def test_reglue_display_unattached(mock_display, notebook_result):
     notebook_result.reglue("output", unattached=True)
     mock_display.assert_called_once_with(
-        {"text/plain": "'Hello World!'"},
-        metadata={},
-        raw=True,
+        {"text/plain": "'Hello World!'"}, metadata={}, raw=True
     )
 
 

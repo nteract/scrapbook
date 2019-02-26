@@ -41,7 +41,8 @@ def read_reqs(fname):
 
 
 reqs_s3 = ["papermill[s3]"]
-reqs_azure = ["papermill[azure]"]
+# Remove requests >= 2.21.0 when papermill releases 0.18.3
+reqs_azure = ["papermill[azure]", "requests >= 2.21.0"]
 reqs_gcs = ["papermill[gcs]"]
 reqs_all = ["papermill[all]"]
 reqs_dev = read_reqs("requirements-dev.txt") + reqs_all

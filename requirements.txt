@@ -5,4 +5,4 @@ jsonschema
 future
 futures ; python_version < "3.0"
 ipython >= 5.0
-requests >= 2.21.0
+

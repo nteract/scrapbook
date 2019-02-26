@@ -1,4 +1,4 @@
-../scrapbook
+-e .
 papermill
 matplotlib
 ipywidgets

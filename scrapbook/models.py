@@ -268,7 +268,7 @@ class Notebook(object):
             indicator for rendering without making the display recallable as scrapbook data
         """
         # Avoid circular imports
-        from .api import _data_payload_display, _display_payload_display
+        from .api import _prepare_ipy_data_format, _prepare_ipy_display_format
 
         if name not in self.scraps:
             if raise_on_missing:
@@ -284,7 +284,7 @@ class Notebook(object):
             if new_name:
                 scrap = scrap._replace(name=new_name)
             if scrap.data is not None:
-                data, metadata = _data_payload_display(
+                data, metadata = _prepare_ipy_data_format(
                     scrap.name, scrap_to_payload(scrap), scrap.encoder
                 )
                 # A little non-sensical in this case, but when regluing unattached
@@ -298,7 +298,7 @@ class Notebook(object):
                 scrap_metadata = self._strip_scrapbook_metadata(
                     scrap.display.get("metadata", {})
                 )
-                data, metadata = _display_payload_display(
+                data, metadata = _prepare_ipy_display_format(
                     scrap.name, scrap_data, scrap_metadata
                 )
                 if unattached:
