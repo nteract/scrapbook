@@ -7,6 +7,8 @@ Provides the base API calls for scrapbook
 from __future__ import unicode_literals
 import os
 
+from copy import deepcopy
+
 import IPython
 
 from six import string_types
@@ -22,7 +24,7 @@ from .schemas import GLUE_PAYLOAD_FMT
 from .encoders import registry as encoder_registry
 
 
-def glue(name, scrap, encoder=None, display=None):
+def glue(name, scrap, encoder=None, display=None, metadata=None):
     """
     Records a scrap (data value) in the given notebook cell.
 
@@ -64,7 +66,17 @@ def glue(name, scrap, encoder=None, display=None):
         The data protocol name to respect in persisting data
     display: any (optional)
         An indicator for ...
+    metadata: dict or None(optional )
+        Metadata to be encoded with the object and read if it is to be displayed.
+        The default is None which indicates no additional metadata. 
     """
+
+    if metadata is None:
+        metadata = {}
+    elif isinstance(metadata, dict):
+        metadata = deepcopy(metadata)
+    else:
+        raise ValueError("metadata must be a dict or None.")
 
     # TODO: Implement the cool stuff. Remote storage indicators?!? Maybe remote media type?!?
     # TODO: Make this more modular
@@ -85,11 +97,13 @@ def glue(name, scrap, encoder=None, display=None):
 
     # Only store data that can be stored (purely display scraps can skip)
     if encoder != "display":
-        data, metadata = _prepare_ipy_data_format(
+
+        data, prepared_metadata = _prepare_ipy_data_format(
             name,
             scrap_to_payload(encoder_registry.encode(Scrap(name, scrap, encoder))),
             encoder,
         )
+        metadata.update(prepared_metadata)
         ip_display(data, metadata=metadata, raw=True)
 
     # Only display data that is marked for display
@@ -102,7 +116,10 @@ def glue(name, scrap, encoder=None, display=None):
         raw_data, raw_metadata = IPython.core.formatters.format_display_data(
             scrap, **display_kwargs
         )
-        data, metadata = _prepare_ipy_display_format(name, raw_data, raw_metadata)
+        data, prepared_metadata = _prepare_ipy_display_format(
+            name, raw_data, raw_metadata
+        )
+        metadata.update(prepared_metadata)
         ip_display(data, metadata=metadata, raw=True)
 
 
