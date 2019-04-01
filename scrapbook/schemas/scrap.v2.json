@@ -1,14 +1,26 @@
 {
   "definitions": {},
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "scrap.v1.json",
+  "$id": "scrap.v2.json",
   "type": "object",
   "title": "The Root Schema",
   "required": [
     "name",
-    "data",
     "encoder",
+    "store",
     "version"
+  ],
+  "oneOf": [
+    {
+      "required": [
+        "data"
+      ]
+    },
+    {
+      "required": [
+        "reference"
+      ]
+    }
   ],
   "properties": {
     "name": {
@@ -25,15 +37,24 @@
       "type": [
         "object",
         "array",
-        "boolean",
         "string",
         "number",
+        "boolean",
         "integer"
       ],
       "title": "scrap data",
       "description": "The raw data in JSON format associated with this Scrap",
       "examples": [
         "data"
+      ]
+    },
+    "reference": {
+      "$id": "#/properties/reference",
+      "type": "string",
+      "title": "scrap data reference",
+      "description": "The path reference to the data stored for this Scrap",
+      "examples": [
+        "s3://mybucket/my/key/prefix/to/data.json"
       ]
     },
     "encoder": {
@@ -45,12 +66,33 @@
         "json"
       ]
     },
+    "store": {
+      "$id": "#/properties/store",
+      "type": "string",
+      "title": "scrap store",
+      "description": "The store key used to persist and recall the \"reference\" data",
+      "examples": [
+        "s3"
+      ]
+    },
+    "stored_format": {
+      "$id": "#/properties/stored_format",
+      "type": "string",
+      "title": "scrap stored format",
+      "description": "The format of the \"data\" stored in the \"reference\" path",
+      "examples": [
+        "binary",
+        "unicode",
+        "utf-8",
+        "parquet:binary"
+      ]
+    },
     "version": {
       "$id": "#/properties/version",
       "type": "integer",
       "title": "scrap version",
       "description": "The version denoting the schema this payload is adhering to",
-      "default": 1,
+      "default": 0,
       "readOnly": true
     }
   }

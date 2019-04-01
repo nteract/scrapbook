@@ -1,5 +1,6 @@
 pandas
 six
+retry
 papermill
 jsonschema
 future

@@ -44,11 +44,23 @@ def test_notebook_scraps(notebook_collection):
                     [
                         (
                             "one",
-                            Scrap(name="one", data=1, encoder="json", display=None),
+                            Scrap(
+                                name="one",
+                                data=1,
+                                encoder="json",
+                                store="notebook",
+                                display=None,
+                            ),
                         ),
                         (
                             "number",
-                            Scrap(name="number", data=1, encoder="json", display=None),
+                            Scrap(
+                                name="number",
+                                data=1,
+                                encoder="json",
+                                store="notebook",
+                                display=None,
+                            ),
                         ),
                         (
                             "list",
@@ -56,6 +68,7 @@ def test_notebook_scraps(notebook_collection):
                                 name="list",
                                 data=[1, 2, 3],
                                 encoder="json",
+                                store="notebook",
                                 display=None,
                             ),
                         ),
@@ -65,6 +78,7 @@ def test_notebook_scraps(notebook_collection):
                                 name="dict",
                                 data={"a": 1, "b": 2},
                                 encoder="json",
+                                store="notebook",
                                 display=None,
                             ),
                         ),
@@ -74,6 +88,7 @@ def test_notebook_scraps(notebook_collection):
                                 name="output",
                                 data=None,
                                 encoder="display",
+                                store="notebook",
                                 display={
                                     "data": {"text/plain": "'Hello World!'"},
                                     "metadata": {"papermill": {"name": "output"}},
@@ -87,6 +102,7 @@ def test_notebook_scraps(notebook_collection):
                                 name="one_only",
                                 data=None,
                                 encoder="display",
+                                store="notebook",
                                 display={
                                     "data": {"text/plain": "'Just here!'"},
                                     "metadata": {
@@ -109,11 +125,23 @@ def test_notebook_scraps(notebook_collection):
                     [
                         (
                             "two",
-                            Scrap(name="two", data=2, encoder="json", display=None),
+                            Scrap(
+                                name="two",
+                                data=2,
+                                encoder="json",
+                                store="notebook",
+                                display=None,
+                            ),
                         ),
                         (
                             "number",
-                            Scrap(name="number", data=2, encoder="json", display=None),
+                            Scrap(
+                                name="number",
+                                data=2,
+                                encoder="json",
+                                store="notebook",
+                                display=None,
+                            ),
                         ),
                         (
                             "list",
@@ -121,6 +149,7 @@ def test_notebook_scraps(notebook_collection):
                                 name="list",
                                 data=[4, 5, 6],
                                 encoder="json",
+                                store="notebook",
                                 display=None,
                             ),
                         ),
@@ -130,6 +159,7 @@ def test_notebook_scraps(notebook_collection):
                                 name="dict",
                                 data={"a": 3, "b": 4},
                                 encoder="json",
+                                store="notebook",
                                 display=None,
                             ),
                         ),
@@ -139,6 +169,7 @@ def test_notebook_scraps(notebook_collection):
                                 name="output",
                                 data=None,
                                 encoder="display",
+                                store="notebook",
                                 display={
                                     "data": {"text/plain": "'Hello World 2!'"},
                                     "metadata": {"papermill": {"name": "output"}},
@@ -152,6 +183,7 @@ def test_notebook_scraps(notebook_collection):
                                 name="two_only",
                                 data=None,
                                 encoder="display",
+                                store="notebook",
                                 display={
                                     "data": {"text/plain": "'Just here!'"},
                                     "metadata": {
@@ -175,12 +207,41 @@ def test_notebook_scraps(notebook_collection):
 def test_scraps(notebook_collection):
     assert notebook_collection.scraps == Scraps(
         [
-            ("one", Scrap(name="one", data=1, encoder="json", display=None)),
-            ("number", Scrap(name="number", data=2, encoder="json", display=None)),
-            ("list", Scrap(name="list", data=[4, 5, 6], encoder="json", display=None)),
+            (
+                "one",
+                Scrap(
+                    name="one", data=1, encoder="json", store="notebook", display=None
+                ),
+            ),
+            (
+                "number",
+                Scrap(
+                    name="number",
+                    data=2,
+                    encoder="json",
+                    store="notebook",
+                    display=None,
+                ),
+            ),
+            (
+                "list",
+                Scrap(
+                    name="list",
+                    data=[4, 5, 6],
+                    encoder="json",
+                    store="notebook",
+                    display=None,
+                ),
+            ),
             (
                 "dict",
-                Scrap(name="dict", data={"a": 3, "b": 4}, encoder="json", display=None),
+                Scrap(
+                    name="dict",
+                    data={"a": 3, "b": 4},
+                    encoder="json",
+                    store="notebook",
+                    display=None,
+                ),
             ),
             (
                 "output",
@@ -188,6 +249,7 @@ def test_scraps(notebook_collection):
                     name="output",
                     data=None,
                     encoder="display",
+                    store="notebook",
                     display={
                         "data": {"text/plain": "'Hello World 2!'"},
                         "metadata": {"papermill": {"name": "output"}},
@@ -201,6 +263,7 @@ def test_scraps(notebook_collection):
                     name="one_only",
                     data=None,
                     encoder="display",
+                    store="notebook",
                     display={
                         "data": {"text/plain": "'Just here!'"},
                         "metadata": {
@@ -214,13 +277,19 @@ def test_scraps(notebook_collection):
                     },
                 ),
             ),
-            ("two", Scrap(name="two", data=2, encoder="json", display=None)),
+            (
+                "two",
+                Scrap(
+                    name="two", data=2, encoder="json", store="notebook", display=None
+                ),
+            ),
             (
                 "two_only",
                 Scrap(
                     name="two_only",
                     data=None,
                     encoder="display",
+                    store="notebook",
                     display={
                         "data": {"text/plain": "'Just here!'"},
                         "metadata": {

@@ -20,7 +20,7 @@ from papermill.iorw import papermill_io
 
 from .scraps import Scrap, Scraps, payload_to_scrap, scrap_to_payload
 from .schemas import GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX
-from .encoders import registry as encoder_registry
+from .managers import registry as manager_registry
 from .exceptions import ScrapbookException
 
 
@@ -106,7 +106,9 @@ class Notebook(object):
             encoder = sig.split(RECORD_PAYLOAD_PREFIX, 1)[1][1:]
             # First key is the only named payload
             for name, data in payload.items():
-                return encoder_registry.decode(Scrap(name, data, encoder))
+                return manager_registry.decode(
+                    Scrap(name, data, encoder=encoder, store="notebook")
+                )
 
     def _extract_output_data_scraps(self, output):
         output_scraps = Scraps()
@@ -114,7 +116,7 @@ class Notebook(object):
             # Backwards compatibility for papermill
             scrap = self._extract_papermill_output_data(sig, payload)
             if scrap is None and sig.startswith(GLUE_PAYLOAD_PREFIX):
-                scrap = encoder_registry.decode(payload_to_scrap(payload))
+                scrap = manager_registry.decode(payload_to_scrap(payload))
             if scrap:
                 output_scraps[scrap.name] = scrap
 
@@ -151,19 +153,16 @@ class Notebook(object):
                         # Hydrate with output_displays
                         (
                             scrap.name,
-                            Scrap(
-                                scrap.name,
-                                scrap.data,
-                                scrap.encoder,
-                                output_displays.get(scrap.name),
-                            ),
+                            scrap._replace(display=output_displays.get(scrap.name)),
                         )
                         for scrap in output_data_scraps.values()
                     ]
                 )
                 for name, display in output_displays.items():
                     if name not in output_scraps:
-                        output_scraps[name] = Scrap(name, None, "display", display)
+                        output_scraps[name] = Scrap(
+                            name, encoder="display", store="notebook", display=display
+                        )
                 scraps.update(output_scraps)
 
         return scraps

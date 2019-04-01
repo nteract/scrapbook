@@ -4,6 +4,7 @@ scraps.py
 
 Provides the Scrap and Scraps abstractions for housing data
 """
+import copy
 import pandas as pd
 
 from jsonschema import validate as json_validate, ValidationError
@@ -14,19 +15,33 @@ from .schemas import scrap_schema, LATEST_SCRAP_VERSION
 from .exceptions import ScrapbookDataException
 
 # dataclasses would be nice here...
-Scrap = namedtuple("Scrap", ["name", "data", "encoder", "display"])
-Scrap.__new__.__defaults__ = (None,)
+_scrap_fields = [
+    "name",
+    "data",
+    "reference",
+    "encoder",
+    "store",
+    "stored_format",
+    "display",
+]
+Scrap = namedtuple("Scrap", _scrap_fields)
+# Name is required
+Scrap.__new__.__defaults__ = (len(_scrap_fields) - 1) * (None,)
 
 
 def scrap_to_payload(scrap):
     """Translates scrap data to the output format"""
-    # Apply new keys here as needed (like `ref`)
     payload = {
         "name": scrap.name,
         "data": scrap.data,
+        "reference": scrap.reference,
         "encoder": scrap.encoder,
+        "store": scrap.store,
+        "stored_format": scrap.stored_format,
         "version": LATEST_SCRAP_VERSION,
     }
+    # Filter empty fields from the payload
+    payload = {k: v for k, v in payload.items() if v is not None}
     # Ensure we're conforming to our schema
     try:
         json_validate(payload, scrap_schema(LATEST_SCRAP_VERSION))
@@ -68,12 +83,20 @@ def payload_to_scrap(payload):
                 ),
                 [e],
             )
-    # If future schema versions would require further manipulation
-    # then implement various version loaders here
+
+    # Perform older version cleanup here
+    payload = copy.copy(payload)
+    if payload["version"] == 1:
+        # This was the only option before
+        payload["store"] = "notebook"
+
     return Scrap(
         name=payload.get("name"),
         data=payload.get("data"),
+        reference=payload.get("reference"),
         encoder=payload.get("encoder"),
+        store=payload.get("store"),
+        stored_format=payload.get("stored_format"),
     )
 
 
@@ -83,7 +106,13 @@ class Scraps(OrderedDict):
 
     @property
     def data_scraps(self):
-        return OrderedDict([(k, v) for k, v in self.items() if v.data is not None])
+        return OrderedDict(
+            [
+                (k, v)
+                for k, v in self.items()
+                if v.data is not None or v.reference is not None
+            ]
+        )
 
     @property
     def data_dict(self):
@@ -101,9 +130,5 @@ class Scraps(OrderedDict):
     def dataframe(self):
         """pandas dataframe: dataframe of cell scraps"""
         return pd.DataFrame(
-            [
-                [scrap.name, scrap.data, scrap.encoder, scrap.display]
-                for scrap in self.values()
-            ],
-            columns=["name", "data", "encoder", "display"],
+            [list(scrap) for scrap in self.values()], columns=_scrap_fields
         )

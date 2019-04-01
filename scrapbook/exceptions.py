@@ -9,6 +9,10 @@ class ScrapbookMissingEncoder(ScrapbookException):
     """Raised when no encoder is found to tranforming data"""
 
 
+class ScrapbookMissingStore(ScrapbookException):
+    """Raised when no store is found for persisting / recalling data"""
+
+
 class ScrapbookDataException(ScrapbookException):
     """Raised when a data translation exception is encountered"""
 

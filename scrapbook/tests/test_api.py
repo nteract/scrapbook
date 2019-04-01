@@ -9,7 +9,7 @@ from IPython.display import Image
 
 from . import get_fixture_path
 from ..api import glue
-from ..schemas import GLUE_PAYLOAD_FMT
+from ..schemas import GLUE_PAYLOAD_FMT, LATEST_SCRAP_VERSION
 
 
 @pytest.mark.parametrize(
@@ -18,13 +18,15 @@ from ..schemas import GLUE_PAYLOAD_FMT
         (
             "foobarbaz",
             {"foo": "bar", "baz": 1},
-            None,
+            "text",
             {
-                GLUE_PAYLOAD_FMT.format(encoder="json"): {
+                GLUE_PAYLOAD_FMT.format(encoder="text"): {
                     "name": "foobarbaz",
-                    "data": {"foo": "bar", "baz": 1},
-                    "encoder": "json",
-                    "version": 1,
+                    "data": str({"foo": "bar", "baz": 1}),
+                    "encoder": "text",
+                    "store": "notebook",
+                    "stored_format": "unicode",
+                    "version": LATEST_SCRAP_VERSION,
                 }
             },
             {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
@@ -32,13 +34,15 @@ from ..schemas import GLUE_PAYLOAD_FMT
         (
             "foobarbaz",
             '{"foo":"bar","baz":1}',
-            None,
+            "text",
             {
                 GLUE_PAYLOAD_FMT.format(encoder="text"): {
                     "name": "foobarbaz",
                     "data": '{"foo":"bar","baz":1}',
                     "encoder": "text",
-                    "version": 1,
+                    "store": "notebook",
+                    "stored_format": "unicode",
+                    "version": LATEST_SCRAP_VERSION,
                 }
             },
             {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
@@ -50,9 +54,10 @@ from ..schemas import GLUE_PAYLOAD_FMT
             {
                 GLUE_PAYLOAD_FMT.format(encoder="json"): {
                     "name": "foobarbaz",
-                    "data": {"foo": "bar", "baz": 1},
+                    "data": '{"foo":"bar","baz":1}',
                     "encoder": "json",
-                    "version": 1,
+                    "store": "notebook",
+                    "version": LATEST_SCRAP_VERSION,
                 }
             },
             {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
@@ -67,7 +72,8 @@ from ..schemas import GLUE_PAYLOAD_FMT
                     "name": "foobarbaz",
                     "data": {"foo": "bar", "baz": 1},
                     "encoder": "json",
-                    "version": 1,
+                    "store": "notebook",
+                    "version": LATEST_SCRAP_VERSION,
                 }
             },
             {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
@@ -134,7 +140,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
 )
 @mock.patch("scrapbook.api.ip_display")
 def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, display):
-    glue(name, obj, encoder, display)
+    glue(name, obj, encoder=encoder, display=display)
     mock_display.assert_called_once_with(data, metadata=metadata, raw=True)
 
 
@@ -149,11 +155,13 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
                     "name": "foobarbaz",
                     "data": "foo,bar,baz",
                     "encoder": "text",
-                    "version": 1,
+                    "store": "notebook",
+                    "stored_format": "unicode",
+                    "version": LATEST_SCRAP_VERSION,
                 }
             },
             {u"text/plain": u"'foo,bar,baz'"},
-            None,  # Save data as default
+            "text",  # Save data as text
             {u"scrapbook": {u"name": u"foobarbaz", "data": True, "display": False}},
             {u"scrapbook": {u"name": u"foobarbaz", "data": False, "display": True}},
             True,  # Indicate display should also be available
@@ -166,11 +174,12 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
                     "name": "foobarbaz",
                     "data": ["foo", "bar", "baz"],
                     "encoder": "json",
-                    "version": 1,
+                    "store": "notebook",
+                    "version": LATEST_SCRAP_VERSION,
                 }
             },
             {u"text/plain": u"['foo', 'bar', 'baz']"},
-            "json",  # Save data as json
+            None,  # Save data as default
             {u"scrapbook": {u"name": u"foobarbaz", "data": True, "display": False}},
             {u"scrapbook": {u"name": u"foobarbaz", "data": False, "display": True}},
             True,  # Indicate display should also be available
@@ -189,7 +198,7 @@ def test_glue_plus_display(
     display_metadata,
     display,
 ):
-    glue(name, obj, encoder, display)
+    glue(name, obj, encoder=encoder, display=display)
     mock_display.assert_has_calls(
         [
             mock.call(data_output, metadata=data_metadata, raw=True),

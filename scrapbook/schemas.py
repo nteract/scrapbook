@@ -29,7 +29,7 @@ SCHEMAS = {
     )  # Since glob can't perfectly match the regex
 }
 # Update for any new json payloads and schemas/scrap.v*.json
-LATEST_SCRAP_VERSION = 1
+LATEST_SCRAP_VERSION = 2
 
 
 def scrap_schema(version=LATEST_SCRAP_VERSION):

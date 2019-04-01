@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import mock
+import base64
 import pytest
 
 from ..scraps import Scrap, scrap_to_payload, payload_to_scrap
@@ -12,38 +13,86 @@ from ..exceptions import ScrapbookDataException
     "test_input,expected",
     [
         (
-            Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="text"),
+            Scrap(
+                name="foo",
+                data='{"foo":"bar","baz":1}',
+                encoder="text",
+                store="notebook",
+            ),
             {
                 "name": "foo",
                 "data": '{"foo":"bar","baz":1}',
                 "encoder": "text",
+                "store": "notebook",
                 "version": LATEST_SCRAP_VERSION,
             },
         ),
         (
-            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="json"),
+            Scrap(
+                name="foo",
+                data=base64.b64encode(u"😍".encode("utf-8")).decode(),
+                encoder="text",
+                store="notebook",
+                stored_format="utf-8:base64",
+            ),
+            {
+                "name": "foo",
+                "data": "8J+YjQ==",
+                "encoder": "text",
+                "store": "notebook",
+                "stored_format": "utf-8:base64",
+                "version": LATEST_SCRAP_VERSION,
+            },
+        ),
+        (
+            Scrap(
+                name="foo",
+                data={"foo": "bar", "baz": 1},
+                encoder="json",
+                store="notebook",
+            ),
             {
                 "name": "foo",
                 "data": {"foo": "bar", "baz": 1},
                 "encoder": "json",
+                "store": "notebook",
                 "version": LATEST_SCRAP_VERSION,
             },
         ),
         (
-            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="json"),
+            Scrap(
+                name="foo",
+                data=["foo", "bar", 1, 2, 3],
+                encoder="json",
+                store="notebook",
+            ),
             {
                 "name": "foo",
                 "data": ["foo", "bar", 1, 2, 3],
                 "encoder": "json",
+                "store": "notebook",
                 "version": LATEST_SCRAP_VERSION,
             },
         ),
         (
-            Scrap(name="foo", data=[u"😍"], encoder="json"),
+            Scrap(name="foo", data=[u"😍"], encoder="json", store="notebook"),
             {
                 "name": "foo",
                 "data": [u"😍"],
                 "encoder": "json",
+                "store": "notebook",
+                "version": LATEST_SCRAP_VERSION,
+            },
+        ),
+        (
+            Scrap(
+                name="foo", reference="s3://foo/bar.json", encoder="json", store="s3"
+            ),
+            {
+                "name": "foo",
+                "reference": "s3://foo/bar.json",
+                "encoder": "json",
+                "store": "s3",
                 "version": LATEST_SCRAP_VERSION,
             },
         ),
@@ -61,36 +110,59 @@ def test_scrap_to_payload(test_input, expected):
                 "name": "foo",
                 "data": '{"foo":"bar","baz":1}',
                 "encoder": "text",
+                "store": "notebook",
                 "version": LATEST_SCRAP_VERSION,
             },
-            Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="text"),
+            Scrap(
+                name="foo",
+                data='{"foo":"bar","baz":1}',
+                encoder="text",
+                store="notebook",
+            ),
         ),
         (
             {
                 "name": "foo",
                 "data": {"foo": "bar", "baz": 1},
                 "encoder": "json",
+                "store": "notebook",
                 "version": LATEST_SCRAP_VERSION,
             },
-            Scrap(name="foo", data={"foo": "bar", "baz": 1}, encoder="json"),
+            Scrap(
+                name="foo",
+                data={"foo": "bar", "baz": 1},
+                encoder="json",
+                store="notebook",
+            ),
         ),
         (
             {
                 "name": "foo",
                 "data": ["foo", "bar", 1, 2, 3],
                 "encoder": "json",
+                "store": "notebook",
                 "version": LATEST_SCRAP_VERSION,
             },
-            Scrap(name="foo", data=["foo", "bar", 1, 2, 3], encoder="json"),
+            Scrap(
+                name="foo",
+                data=["foo", "bar", 1, 2, 3],
+                encoder="json",
+                store="notebook",
+            ),
         ),
         (
             {
                 "name": "foo",
                 "data": [u"😍"],
                 "encoder": "json",
+                "store": "notebook",
                 "version": LATEST_SCRAP_VERSION,
             },
-            Scrap(name="foo", data=[u"😍"], encoder="json"),
+            Scrap(name="foo", data=[u"😍"], encoder="json", store="notebook"),
+        ),
+        (
+            {"name": "foo", "data": [u"😍"], "encoder": "json", "version": 1},
+            Scrap(name="foo", data=[u"😍"], encoder="json", store="notebook"),
         ),
     ],
 )
@@ -105,14 +177,25 @@ class InvalidData(object):
 @pytest.mark.parametrize(
     "test_input",
     [
-        Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder=None),
-        Scrap(name="foo", data=None, encoder="json"),
-        Scrap(name=None, data=["foo", "bar", 1, 2, 3], encoder="json"),
-        Scrap(name="foo", data=InvalidData(), encoder="custom"),
+        Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder=None, store="notebook"),
+        Scrap(name="foo", data='{"foo":"bar","baz":1}', encoder="json", store=None),
+        Scrap(name="foo", data=None, reference=None, encoder="json", store="notebook"),
+        Scrap(
+            name="foo",
+            data='{"foo":"bar","baz":1}',
+            reference="s3://foo/bar.json",
+            encoder="json",
+            store="notebook",
+        ),
+        Scrap(
+            name=None, data=["foo", "bar", 1, 2, 3], encoder="json", store="notebook"
+        ),
+        Scrap(name="foo", data=InvalidData(), encoder="custom", store="notebook"),
     ],
 )
 def test_scrap_to_payload_validation_error(test_input):
     with pytest.raises(ScrapbookDataException):
+        print(test_input)
         scrap_to_payload(test_input)
 
 
@@ -123,24 +206,35 @@ def test_scrap_to_payload_validation_error(test_input):
             "name": "foo",
             "data": '{"foo":"bar","baz":1}',
             "encoder": None,
+            "store": "notebook",
+            "version": LATEST_SCRAP_VERSION,
+        },
+        {
+            "name": "foo",
+            "data": '{"foo":"bar","baz":1}',
+            "encoder": "notebook",
+            "store": None,
             "version": LATEST_SCRAP_VERSION,
         },
         {
             "name": "foo",
             "data": None,
             "encoder": "json",
+            "store": "notebook",
             "version": LATEST_SCRAP_VERSION,
         },
         {
             "name": None,
             "data": ["foo", "bar", 1, 2, 3],
             "encoder": "json",
+            "store": "notebook",
             "version": LATEST_SCRAP_VERSION,
         },
         {
             "name": "foo",
             "data": InvalidData(),
             "encoder": "custom",
+            "store": "notebook",
             "version": LATEST_SCRAP_VERSION,
         },
     ],

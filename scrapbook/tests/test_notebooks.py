@@ -12,6 +12,7 @@ from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell, new_outp
 from . import get_notebook_path, get_notebook_dir
 from .. import read_notebook
 from ..models import Notebook
+from ..schemas import LATEST_SCRAP_VERSION
 from ..exceptions import ScrapbookException
 
 
@@ -83,14 +84,22 @@ def test_display_scraps(notebook_result):
 def test_scraps_collection_dataframe(notebook_result):
     expected_df = pd.DataFrame(
         [
-            ("one", 1, "json", None),
-            ("number", 1, "json", None),
-            ("list", [1, 2, 3], "json", None),
-            ("dict", {u"a": 1, u"b": 2}, "json", None),
-            ("output", None, "display", AnyDict()),
-            ("one_only", None, "display", AnyDict()),
+            ("one", 1, None, "json", "notebook", None, None),
+            ("number", 1, None, "json", "notebook", None, None),
+            ("list", [1, 2, 3], None, "json", "notebook", None, None),
+            ("dict", {u"a": 1, u"b": 2}, None, "json", "notebook", None, None),
+            ("output", None, None, "display", "notebook", None, AnyDict()),
+            ("one_only", None, None, "display", "notebook", None, AnyDict()),
         ],
-        columns=["name", "data", "encoder", "display"],
+        columns=[
+            "name",
+            "data",
+            "reference",
+            "encoder",
+            "store",
+            "stored_format",
+            "display",
+        ],
     )
     assert_frame_equal(notebook_result.scraps.dataframe, expected_df, check_exact=True)
 
@@ -114,7 +123,8 @@ def test_reglue_scrap(mock_display, notebook_result):
                 "name": "one",
                 "data": 1,
                 "encoder": "json",
-                "version": 1,
+                "store": "notebook",
+                "version": LATEST_SCRAP_VERSION,
             }
         },
         metadata={"scrapbook": {"name": "one", "data": True, "display": False}},
@@ -139,7 +149,8 @@ def test_reglue_scrap_unattached(mock_display, notebook_result):
                 "name": "one",
                 "data": 1,
                 "encoder": "json",
-                "version": 1,
+                "store": "notebook",
+                "version": LATEST_SCRAP_VERSION,
             }
         },
         metadata={},
@@ -211,14 +222,50 @@ def test_malformed_execution_metrics(no_exec_result):
 def test_scrap_dataframe(notebook_result):
     expected_df = pd.DataFrame(
         [
-            ("one", 1, "json", None, "result1.ipynb"),
-            ("number", 1, "json", None, "result1.ipynb"),
-            ("list", [1, 2, 3], "json", None, "result1.ipynb"),
-            ("dict", {u"a": 1, u"b": 2}, "json", None, "result1.ipynb"),
-            ("output", None, "display", AnyDict(), "result1.ipynb"),
-            ("one_only", None, "display", AnyDict(), "result1.ipynb"),
+            ("one", 1, None, "json", "notebook", None, None, "result1.ipynb"),
+            ("number", 1, None, "json", "notebook", None, None, "result1.ipynb"),
+            ("list", [1, 2, 3], None, "json", "notebook", None, None, "result1.ipynb"),
+            (
+                "dict",
+                {u"a": 1, u"b": 2},
+                None,
+                "json",
+                "notebook",
+                None,
+                None,
+                "result1.ipynb",
+            ),
+            (
+                "output",
+                None,
+                None,
+                "display",
+                "notebook",
+                None,
+                AnyDict(),
+                "result1.ipynb",
+            ),
+            (
+                "one_only",
+                None,
+                None,
+                "display",
+                "notebook",
+                None,
+                AnyDict(),
+                "result1.ipynb",
+            ),
         ],
-        columns=["name", "data", "encoder", "display", "filename"],
+        columns=[
+            "name",
+            "data",
+            "reference",
+            "encoder",
+            "store",
+            "stored_format",
+            "display",
+            "filename",
+        ],
     )
     assert_frame_equal(
         notebook_result.scrap_dataframe,
