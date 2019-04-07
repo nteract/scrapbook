@@ -6,7 +6,7 @@ Provides the encoders and stores for various data types to be persisted / recall
 """
 import six
 import json
-import retry
+import base64
 import pandas as pd
 import collections
 
@@ -14,15 +14,14 @@ from io import BytesIO
 from collections import OrderedDict
 
 # We lean on papermill's readers to connect to remote stores
-from papermill.iorw import S3
-from papermill.exceptions import PapermillRateLimitException
+try:
+    from papermill.s3 import S3
+except ImportError:
+    # TODO: Handle missing depedency as papermill does
+    class S3(object): pass
 
 from .scraps import scrap_to_payload
-from .exceptions import (
-    ScrapbookException,
-    ScrapbookMissingEncoder,
-    ScrapbookMissingStore,
-)
+from .exceptions import ScrapbookMissingEncoder, ScrapbookMissingStore
 
 
 class DataManagerRegistry(collections.MutableMapping):
@@ -98,11 +97,13 @@ class DataManagerRegistry(collections.MutableMapping):
             try:
                 # Find matches both the encoder and the store are valid for the
                 # constraints the scrap provides
-                if ((scrap.encoder == manager.encoder_name or
-                    (scrap.encoder is None and manager.encodable(scrap))
-                ) and (scrap.store == manager.store_name or
-                    (scrap.store is None and manager.storable(scrap))
-                )):
+                if (
+                    scrap.encoder == manager.encoder_name
+                    or (scrap.encoder is None and manager.encodable(scrap))
+                ) and (
+                    scrap.store == manager.store_name
+                    or (scrap.store is None and manager.storable(scrap))
+                ):
                     return manager
             except AttributeError:
                 # Skip any manager that don't implement encoding and storage
@@ -192,7 +193,7 @@ class DataManagerRegistry(collections.MutableMapping):
         else:
             encoder, store = self.fetch_encoder_and_store(scrap)
             output_scrap = store.recall(scrap, **kwargs)
-            output_scrap = loader.decode(output_scrap, **kwargs)
+            output_scrap = encoder.decode(output_scrap, **kwargs)
             output_scrap = output_scrap._replace(
                 encoder=encoder.encoder_name, store=store.store_name
             )
@@ -371,18 +372,22 @@ class S3ReferenceStore(object):
 
     def persist(self, scrap, **kwargs):
         if isinstance(scrap.data, bytes):
-            ByteExtendedS3().cp_bytes(scrap.data, scrap.ref)
+            ByteExtendedS3().cp_bytes(scrap.data, scrap.reference)
             scrap = self.append_store_format(scrap, "binary")
         else:
-            ByteExtendedS3().cp_string(scrap.data, scrap.ref)
+            ByteExtendedS3().cp_string(scrap.data, scrap.reference)
         return scrap._replace(data=None)
 
     def recall(self, scrap, **kwargs):
         if self.stored_as_format(scrap, "binary"):
-            scrap = scrap._replace(data=ByteExtendedS3().read_bytes_file(path))
+            scrap = scrap._replace(
+                data=ByteExtendedS3().read_bytes_file(scrap.reference)
+            )
             scrap = self.strip_store_format(scrap, "binary")
         else:
-            scrap = scrap._replace(data=ByteExtendedS3().read_string_file(path))
+            scrap = scrap._replace(
+                data=ByteExtendedS3().read_string_file(scrap.reference)
+            )
         return scrap
 
 

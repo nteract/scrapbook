@@ -11,7 +11,6 @@ from ..managers import (
     S3ReferenceStore,
 )
 from ..exceptions import (
-    ScrapbookException,
     ScrapbookDataException,
     ScrapbookMissingEncoder,
     ScrapbookMissingStore,
@@ -259,9 +258,9 @@ def test_decode(registry):
 
 def test_encode(registry):
     # Test that it can select and execute the qualified encoder
-    assert registry.encode(
-        Scrap(name="foo", encoder="json", data=["foobar"])
-    ) == Scrap(name="foo", encoder="json", store="notebook", data=["foobar"])
+    assert registry.encode(Scrap(name="foo", encoder="json", data=["foobar"])) == Scrap(
+        name="foo", encoder="json", store="notebook", data=["foobar"]
+    )
 
 
 class BadData(object):
@@ -303,7 +302,9 @@ class BadManager(object):
 def test_bad_decode(registry):
     with pytest.raises(ScrapbookDataException):
         # Can't have data and a reference at the same time
-        registry.decode(Scrap(name="foo", data="", reference="", encoder="bad", store="bad"))
+        registry.decode(
+            Scrap(name="foo", data="", reference="", encoder="bad", store="bad")
+        )
 
 
 def test_bad_encode(registry):
@@ -333,20 +334,14 @@ def test_missing_decode_encoder(registry):
 
 def test_missing_decode_store(registry):
     with pytest.raises(ScrapbookMissingStore):
-        registry.decode(
-            Scrap(name="foo", data="bar", encoder="json", store="missing")
-        )
+        registry.decode(Scrap(name="foo", data="bar", encoder="json", store="missing"))
 
 
 def test_missing_encode_encoder(registry):
     with pytest.raises(ScrapbookMissingEncoder):
-        registry.encode(
-            Scrap(name="foo", data="bar", encoder="missing")
-        )
+        registry.encode(Scrap(name="foo", data="bar", encoder="missing"))
 
 
 def test_missing_encode_store(registry):
     with pytest.raises(ScrapbookMissingStore):
-        registry.encode(
-            Scrap(name="foo", data="bar", store="missing")
-        )
+        registry.encode(Scrap(name="foo", data="bar", store="missing"))
