@@ -1,5 +1,7 @@
 <img width="616" alt="scrapbook logo" src="https://user-images.githubusercontent.com/836375/52512549-31260f00-2bba-11e9-9556-515ba5ff0b4b.png">
 
+# scrapbook
+
 <!---(binder links generated at https://mybinder.readthedocs.io/en/latest/howto/badges.html and compressed at https://tinyurl.com) -->
 
 [![Build Status](https://travis-ci.org/nteract/scrapbook.svg?branch=master)](https://travis-ci.org/nteract/scrapbook)
@@ -9,18 +11,53 @@
 [![badge](https://tinyurl.com/ybk8qa3j)](https://mybinder.org/v2/gh/nteract/scrapbook/master?filepath=binder%2FResultsDemo.ipynb)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
-# scrapbook
+THE **scrapbook** library records a notebook’s data values and generated visual
+content as "scraps". Recorded scraps can be read at a future time.
 
-**scrapbook** is a library for recording a notebook’s data values and generated visual
-content as "scraps". These recorded scraps can be read at a future time.
+## Use Cases
+
+Notebook users may wish to record data produced during a notebook's execution.
+This recorded data, **scraps**, can be used at a later time or passed in a
+workflow to another notebook as input.
+
+Namely, scrapbook lets you:
+
+- **persist** data and visual content displays in a notebook as scraps
+- **recall** any persisted scrap of data
+- **summarize collections** of notebooks
 
 ## Python Version Support
 
-This library will support python 2.7 and 3.5+ until end-of-life for python 2 in 2020. After which python 2 support will halt and only 3.x version will be maintained.
+This library's long term support target is Python 3.5+. It currently also
+supports Python 2.7 until Python 2 reaches end-of-life in 2020. After this
+date, Python 2 support will halt, and only 3.x versions will be maintained.
 
-## Models
+## Installation
 
-A few new names for information are introduced in scrapbook:
+Install using `pip`:
+
+```{.sourceCode .bash}
+pip install nteract-scrapbook
+```
+
+For installing optional IO dependencies, you can specify individual store bundles,
+like `s3` or `azure`:
+
+```{.sourceCode .bash}
+pip install nteract-scrapbook[s3]
+```
+
+or use `all`:
+
+```{.sourceCode .bash}
+pip install nteract-scrapbook[all]
+```
+
+---
+
+## Models and Terminology
+
+Scrapbook defines the following items:
 
 - **scraps**: serializable data values and visualizations such as strings, lists of
   objects, pandas dataframes, charts, images, or data references.
@@ -28,48 +65,35 @@ A few new names for information are introduced in scrapbook:
   with scraps.
 - **scrapbook**: a collection of notebooks with an interface for asking questions of
   the collection.
--  **encoders**: a registered translator of data to/from notebook
+- **encoders**: a registered translator of data to/from notebook
   storage formats.
 
-### Scrap
+### `scrap` model
 
-The scrap model houses a few key attributes in a tuple. Namely:
+The `scrap` model houses a few key attributes in a tuple, including:
 
 - **name**: The name of the scrap
 - **data**: Any data captured by the scrapbook api call
 - **encoder**: The name of the encoder used to encode/decode data to/from the notebook
 - **display**: Any display data used by IPython to display visual content
 
-## Installation
+---
 
-To start, one can install via pip.
+## API
 
-``` {.sourceCode .bash}
-pip install nteract-scrapbook
-```
+Scrapbook adds a few basic api commands which enable saving and retrieving data
+including:
 
-For all optional io dependencies, you can specify individual bundles
-like `s3`, or `azure` -- or use `all`
+- `glue` to persist scraps with or without _display output_
+- `read_notebook` reads one notebook
+- `scraps` provides a searchable dictionary of all scraps by name
+- `reglue` which copies a scrap from another notebook to the current notebook
+- `read_notebooks` reads many notebooks from a given path
+- `scraps_report` displays a report about collected scraps
+- `papermill_dataframe` and `papermill_metrics` for backward compatibility
+  for two deprecated papermill features
 
-``` {.sourceCode .bash}
-pip install nteract-scrapbook[all]
-```
-
-## Use Case
-
-Notebook users may wish to record data produced during a notebook execution.
-This recorded data can then be read to be used at a later time or be passed to
-another notebook as input.
-
-Namely scrapbook lets you:
-
-- **persist** data and displays (scraps) in a notebook
-- **recall** any persisted scrap of data
-- **summarize collections** of notebooks
-
-## API Calls
-
-Scrapbook adds a few basic api commands which enable saving and retrieving data.
+The following sections provide more detail on these api commands.
 
 ### `glue` to persist scraps
 
@@ -79,6 +103,7 @@ The `scrap` (recorded value) can be retrieved during later inspection of the
 output notebook.
 
 ```python
+"""glue example for recording data values"""
 import scrapbook as sb
 
 sb.glue("hello", "world")
@@ -88,10 +113,11 @@ sb.glue("some_dict", {"a": 1, "b": 2})
 sb.glue("non_json", df, 'arrow')
 ```
 
-The scrapbook library can be used later to recover scraps (recorded values)
-from the output notebook:
+The scrapbook library can be used later to recover `scraps` from the output
+notebook:
 
 ```python
+# read a notebook and get previously recorded scraps
 nb = sb.read_notebook('notebook.ipynb')
 nb.scraps
 ```
@@ -168,8 +194,7 @@ with the ability to extract scrapbook scraps.
 nb = sb.read_notebook('notebook.ipynb')
 ```
 
-This Notebook object adheres to the [nbformat's json schema](
-https://github.com/jupyter/nbformat/blob/master/nbformat/v4/nbformat.v4.schema.json),
+This Notebook object adheres to the [nbformat's json schema](https://github.com/jupyter/nbformat/blob/master/nbformat/v4/nbformat.v4.schema.json),
 allowing for access to its required fields.
 
 ```python
@@ -208,12 +233,11 @@ nb.parameter_dataframe # Dataframe of notebook parameters
 nb.papermill_dataframe # Dataframe of notebook parameters and cell scraps
 ```
 
-The notebook reader relies on [papermill's registered iorw](
-https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
+The notebook reader relies on [papermill's registered iorw](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
 to enable access to a variety of sources such as -- but not limited to -- S3,
 Azure, and Google Cloud.
 
-#### `scraps` provides a name -> scrap lookup
+### `scraps` provides a name -> scrap lookup
 
 The `scraps` method allows for access to all of the scraps in a particular notebook.
 
@@ -236,7 +260,7 @@ nb.scraps.dataframe # Generates a dataframe with ["name", "data", "encoder", "di
 These methods allow for simple use-cases to not require digging through model
 abstractions.
 
-#### `reglue` copys a scrap into the current notebook
+### `reglue` copys a scrap into the current notebook
 
 Using `reglue` one can take any scrap glue'd into one notebook and glue into the
 current one.
@@ -274,8 +298,7 @@ book = sb.read_notebooks('path/to/notebook/collection/')
 book.notebooks # Or `book.values`
 ```
 
-The path reuses [papermill's registered `iorw`](
-https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
+The path reuses [papermill's registered `iorw`](https://papermill.readthedocs.io/en/latest/reference/papermill-io.html)
 to list and read files form various sources, such that non-local urls can load data.
 
 ```python
@@ -291,7 +314,7 @@ book.notebook_scraps # Dict of shape `notebook` -> (`name` -> `scrap`)
 book.scraps # merged dict of shape `name` -> `scrap`
 ```
 
-#### `scraps_report` displays a report about collected scraps
+### `scraps_report` displays a report about collected scraps
 
 The Scrapbook collection can be used to generate a `scraps_report` on all the
 scraps from the collection as a markdown structured output.
@@ -318,9 +341,9 @@ report on data elements set include_data.
 book.scraps_report(include_data=True)
 ```
 
-#### papermill support
+### papermill support
 
-Finally the scrapbook has two backwards compatible features for deprecated
+Finally the scrapbook provides two backwards compatible features for deprecated
 `papermill` capabilities:
 
 ```python
@@ -379,10 +402,10 @@ Implementation Pending!
 **scrapbook** provides a robust and flexible recording schema. This library replaces [papermill](https://papermill.readthedocs.io)'s existing
 `record` functionality.
 
-[Documentation for papermill record](https://papermill.readthedocs.io/en/latest/usage-recording.html?#recording-values-to-the-notebook)
-In brief:
+[Documentation for papermill `record`](https://papermill.readthedocs.io/en/latest/usage-recording.html?#recording-values-to-the-notebook) exists on ReadTheDocs.
+In brief, the deprecated `record` function:
 
-`pm.record(name, value)`: enabled users the ability to record values to be saved
+`pm.record(name, value)`: enables values to be saved
 with the notebook [[API documentation]](https://papermill.readthedocs.io/en/latest/reference/papermill.html#papermill.api.record)
 
 ```python
@@ -393,22 +416,27 @@ pm.record("some_dict", {"a": 1, "b": 2})
 ```
 
 `pm.read_notebook(notebook)`: pandas could be used later to recover recorded
-values by reading the output notebook into a dataframe.
+values by reading the output notebook into a dataframe. For example:
 
 ```python
 nb = pm.read_notebook('notebook.ipynb')
 nb.dataframe
 ```
 
-### Limitations and challenges
+### Rationale for Papermill `record` deprecation
+
+Papermill's `record` function was deprecated due to these limitations and challenges:
 
 - The `record` function didn't follow papermill's pattern of linear execution
-  of a notebook codebase. (It was awkward to describe `record` as an additional
-  feature of papermill this week. It really felt like describing a second less
-  developed library.)
+  of a notebook. It was awkward to describe `record` as an additional
+  feature of papermill, and really felt like describing a second less
+  developed library.
 - Recording / Reading required data translation to JSON for everything. This is
   a tedious, painful process for dataframes.
 - Reading recorded values into a dataframe would result in unintuitive dataframe
   shapes.
 - Less modularity and flexiblity than other papermill components where custom
   operators can be registered.
+
+To overcome these limitations in Papermill, a decision was made to create
+**Scrapbook**.
