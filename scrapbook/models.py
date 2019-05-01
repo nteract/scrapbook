@@ -22,6 +22,7 @@ from .scraps import Scrap, Scraps, payload_to_scrap, scrap_to_payload
 from .schemas import GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX
 from .encoders import registry as encoder_registry
 from .exceptions import ScrapbookException
+from .utils import no_action_without_kernel
 
 
 def merge_dicts(dicts):
@@ -252,6 +253,7 @@ class Notebook(object):
         copied.pop("scrapbook", None)
         return copied
 
+    @no_action_without_kernel
     def reglue(self, name, new_name=None, raise_on_missing=True, unattached=False):
         """
         Display output from a named source of the notebook.

@@ -8,8 +8,17 @@ import collections
 from IPython.display import Image
 
 from . import get_fixture_path
+from .. import utils
 from ..api import glue
 from ..schemas import GLUE_PAYLOAD_FMT
+
+
+@pytest.fixture(scope='session', autouse=True)
+def is_kernel_mock():
+    """Needed to avoid missing kernel warnings"""
+    with mock.patch.object(utils, 'is_kernel') as _fixture:
+        _fixture.return_value = True
+        yield _fixture
 
 
 @pytest.mark.parametrize(
@@ -196,3 +205,10 @@ def test_glue_plus_display(
             mock.call(display_output, metadata=display_metadata, raw=True),
         ]
     )
+
+
+@mock.patch("scrapbook.utils.is_kernel")
+def test_glue_warning(mock_is_kernel):
+    mock_is_kernel.return_value = False
+    with pytest.warns(UserWarning):
+        glue('foo', 'bar', 'text')

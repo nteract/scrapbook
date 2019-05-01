@@ -10,7 +10,7 @@ from pandas.util.testing import assert_frame_equal
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell, new_output
 
 from . import get_notebook_path, get_notebook_dir
-from .. import read_notebook
+from .. import read_notebook, utils
 from ..models import Notebook
 from ..exceptions import ScrapbookException
 
@@ -19,6 +19,13 @@ try:
     FileNotFoundError
 except NameError:
     FileNotFoundError = IOError
+
+
+@pytest.fixture(scope='session', autouse=True)
+def is_kernel_mock():
+    """Needed to avoid missing kernel warnings"""
+    with mock.patch.object(utils, 'is_kernel') as _fixture:
+        yield _fixture
 
 
 class AnyDict(object):
@@ -298,3 +305,10 @@ def test_metadata_but_empty_content():
 def test_markdown():
     nb = Notebook(new_notebook(cells=[new_markdown_cell("this is a test.")]))
     assert nb.scraps == collections.OrderedDict()
+
+
+@mock.patch("scrapbook.utils.is_kernel")
+def test_reglue_warning(mock_is_kernel, notebook_result):
+    mock_is_kernel.return_value = False
+    with pytest.warns(UserWarning):
+        notebook_result.reglue('number')
