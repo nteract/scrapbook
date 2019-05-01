@@ -11,6 +11,11 @@ import collections
 from .scraps import scrap_to_payload
 from .exceptions import ScrapbookException, ScrapbookMissingEncoder
 
+try:
+    from json import JSONDecodeError  # Py 3
+except ImportError:
+    JSONDecodeError = ValueError  # Py 2
+
 
 class DataEncoderRegistry(collections.MutableMapping):
     def __init__(self):
@@ -121,8 +126,12 @@ class JsonEncoder(object):
 
     def decode(self, scrap, **kwargs):
         # Just in case we somehow got a valid JSON string pushed
-        if isinstance(scrap.data, six.string_types):
-            scrap = scrap._replace(data=json.loads(scrap.data))
+        try:
+            if isinstance(scrap.data, six.string_types):
+                scrap = scrap._replace(data=json.loads(scrap.data))
+        except JSONDecodeError:
+            # The string is an actual string and not a json string, so don't modify
+            pass
         return scrap
 
 

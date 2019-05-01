@@ -76,7 +76,13 @@ def test_notebook_scraps(notebook_collection):
                                 encoder="display",
                                 display={
                                     "data": {"text/plain": "'Hello World!'"},
-                                    "metadata": {"papermill": {"name": "output"}},
+                                    "metadata": {
+                                        "scrapbook": {
+                                            "name": "output",
+                                            "data": False,
+                                            "display": True,
+                                        }
+                                    },
                                     "output_type": "display_data",
                                 },
                             ),
@@ -141,7 +147,13 @@ def test_notebook_scraps(notebook_collection):
                                 encoder="display",
                                 display={
                                     "data": {"text/plain": "'Hello World 2!'"},
-                                    "metadata": {"papermill": {"name": "output"}},
+                                    "metadata": {
+                                        "scrapbook": {
+                                            "name": "output",
+                                            "data": False,
+                                            "display": True,
+                                        }
+                                    },
                                     "output_type": "display_data",
                                 },
                             ),
@@ -190,7 +202,13 @@ def test_scraps(notebook_collection):
                     encoder="display",
                     display={
                         "data": {"text/plain": "'Hello World 2!'"},
-                        "metadata": {"papermill": {"name": "output"}},
+                        "metadata": {
+                            "scrapbook": {
+                                "data": False,
+                                "display": True,
+                                "name": "output",
+                            }
+                        },
                         "output_type": "display_data",
                     },
                 ),
@@ -205,9 +223,9 @@ def test_scraps(notebook_collection):
                         "data": {"text/plain": "'Just here!'"},
                         "metadata": {
                             "scrapbook": {
-                                "name": "one_only",
                                 "data": False,
                                 "display": True,
+                                "name": "one_only",
                             }
                         },
                         "output_type": "display_data",
@@ -225,9 +243,9 @@ def test_scraps(notebook_collection):
                         "data": {"text/plain": "'Just here!'"},
                         "metadata": {
                             "scrapbook": {
-                                "name": "two_only",
                                 "data": False,
                                 "display": True,
+                                "name": "two_only",
                             }
                         },
                         "output_type": "display_data",

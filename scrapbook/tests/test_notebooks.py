@@ -32,6 +32,12 @@ def notebook_result():
     return read_notebook(path)
 
 
+@pytest.fixture
+def notebook_backwards_result():
+    path = get_notebook_path("record.ipynb")
+    return read_notebook(path)
+
+
 def test_bad_path():
     with pytest.raises(FileNotFoundError):
         Notebook("not/a/valid/path.ipynb")
@@ -67,7 +73,13 @@ def test_display_scraps(notebook_result):
     assert notebook_result.scraps.display_dict == {
         "output": {
             "data": {"text/plain": "'Hello World!'"},
-            "metadata": {"papermill": {"name": "output"}},
+            "metadata": {
+                "scrapbook": {
+                    "name": "output",
+                    "data": False,
+                    "display": True,
+                }
+            },
             "output_type": "display_data",
         },
         "one_only": {
@@ -93,6 +105,21 @@ def test_scraps_collection_dataframe(notebook_result):
         columns=["name", "data", "encoder", "display"],
     )
     assert_frame_equal(notebook_result.scraps.dataframe, expected_df, check_exact=True)
+
+
+def test_record_scraps_collection_dataframe(notebook_backwards_result):
+    expected_df = pd.DataFrame(
+        [
+            ("hello", "world", "json", None),
+            ("number", 123, "json", None),
+            ("some_list", [1, 3, 5], "json", None),
+            ("some_dict", {u"a": 1, u"b": 2}, "json", None),
+            ("some_display", None, "display", AnyDict()),
+        ],
+        columns=["name", "data", "encoder", "display"],
+    )
+    print(notebook_backwards_result.scraps.dataframe)
+    assert_frame_equal(notebook_backwards_result.scraps.dataframe, expected_df, check_exact=True)
 
 
 @mock.patch("scrapbook.models.ip_display")
