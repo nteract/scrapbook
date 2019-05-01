@@ -55,8 +55,8 @@ def test_json_decode(test_input, expected):
     ],
 )
 def test_json_decode_failures(test_input):
-    with pytest.raises(JSONDecodeError):
-        JsonEncoder().decode(test_input)
+    # If it can't decode, leaves the string as expected
+    assert JsonEncoder().decode(test_input) == test_input
 
 
 @pytest.mark.parametrize(

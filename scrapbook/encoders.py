@@ -121,8 +121,12 @@ class JsonEncoder(object):
 
     def decode(self, scrap, **kwargs):
         # Just in case we somehow got a valid JSON string pushed
-        if isinstance(scrap.data, six.string_types):
-            scrap = scrap._replace(data=json.loads(scrap.data))
+        try:
+            if isinstance(scrap.data, six.string_types):
+                scrap = scrap._replace(data=json.loads(scrap.data))
+        except json.JSONDecodeError:
+            # The string is an actual string and not a json string, so don't modify
+            pass
         return scrap
 
 
