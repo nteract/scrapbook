@@ -23,7 +23,7 @@ from .encoders import registry as encoder_registry
 from .utils import no_action_without_kernel
 
 
-@no_action_without_kernel
+@kernel_required
 def glue(name, scrap, encoder=None, display=None):
     """
     Records a scrap (data value) in the given notebook cell.

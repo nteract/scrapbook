@@ -22,8 +22,8 @@ except NameError:
 
 
 @pytest.fixture(scope='session', autouse=True)
-def is_kernel_mock():
-    """Needed to avoid missing kernel warnings"""
+def kernel_mock():
+    """Mocks the kernel to capture warnings during testing"""
     with mock.patch.object(utils, 'is_kernel') as _fixture:
         yield _fixture
 
@@ -308,7 +308,7 @@ def test_markdown():
 
 
 @mock.patch("scrapbook.utils.is_kernel")
-def test_reglue_warning(mock_is_kernel, notebook_result):
-    mock_is_kernel.return_value = False
+def test_reglue_warning(kernel_mock, notebook_result):
+    kernel_mock.return_value = False
     with pytest.warns(UserWarning):
         notebook_result.reglue('number')

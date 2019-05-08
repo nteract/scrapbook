@@ -16,8 +16,8 @@ from ..scraps import Scrap, Scraps
 
 
 @pytest.fixture(scope='session', autouse=True)
-def is_kernel_mock():
-    """Needed to avoid missing kernel warnings"""
+def kernel_mock():
+    """Mocks the kernel to capture warnings during testing"""
     with mock.patch.object(utils, 'is_kernel') as _fixture:
         yield _fixture
 

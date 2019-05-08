@@ -6,14 +6,13 @@ Provides the base API calls for scrapbook
 """
 import sys
 import warnings
-
 from functools import wraps
 
 
 def is_kernel():
-    '''
+    """
     Returns True if execution context is inside a kernel
-    '''
+    """
     in_ipython = False
     in_ipython_kernel = False
 
@@ -29,12 +28,12 @@ def is_kernel():
     return in_ipython_kernel
 
 
-def no_action_without_kernel(f):
+def kernel_required(f):
     @wraps(f)
     def wrapper(*args, **kwds):
         if not is_kernel():
             warnings.warn(
-                "No kernel detected for '{fname}'. No action was taken.".format(
+                "No kernel detected for '{fname}'.".format(
                     fname=f.__name__))
         return f(*args, **kwds)
     return wrapper
