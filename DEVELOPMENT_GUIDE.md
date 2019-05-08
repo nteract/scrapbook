@@ -26,7 +26,7 @@ Effectively the repo splits code execution into two groups: (re)writing data in 
 
 When executing from within a kernel, the `glue` function converts data into display outputs that can be persisted within a notebook, or other json storage format. For the sake of simplicity we'll just refer to this pattern in reference to the notebook usecase, with the knowledge that one could use it in any kernel execution context.
 
-The `reglue` function is simply a mechnism for transfering `glue`ed data into a new notebook. Operationally it needs fewer controls because the context of storage and persistence is already encapsulated in the original `scrap`.
+The `reglue` function is simply a mechanism for transferring `glue`ed data into a new notebook. Operationally it needs fewer controls because the context of storage and persistence is already encapsulated in the original `scrap`.
 
 #### `name`
 
@@ -44,7 +44,7 @@ Assigning `encoder` to the value of `"display"` is a special assignment which wi
 
 #### `display`
 
-The display option provides two capabilities to data persistance in parallel to data saved with the given `encoder`. This display content is saved under the same `name` without replacing and raw data of the scrap.
+The display option provides two capabilities to data persistence in parallel to data saved with the given `encoder`. This display content is saved under the same `name` without replacing and raw data of the scrap.
 
 First, if the option is truthy it will cause the `scrap`'s IPython display media types to be saved as display data. For example, if an IPython `Image` object is the scrap in question then a truthy display would persist the html and text media type responses in the notebook under the `name` key.
 
@@ -60,7 +60,7 @@ Whenever a caller wishes to extract data from a notebook which has already execu
 
 A property which recalls all of the `Scrap` objects persisted in the notebook as a collection. This collection is keyed the the `name` of data and displays. The majority of the remaining `Notebook` public functions are based off this property's results.
 
-Older scrap versions, including `papermill`'s `record` model (treated as v0), are translated to the latest version schema in this process. Thus backwards compatability is preserved despite library version differences between reader and consumer so long as the reader is a later release. In violation of this pattern, a best effort is made to read later versions, though exceptions may be raised for severe incompatabilities.
+Older scrap versions, including `papermill`'s `record` model (treated as v0), are translated to the latest version schema in this process. Thus backwards compatibility is preserved despite library version differences between reader and consumer so long as the reader is a later release. In violation of this pattern, a best effort is made to read later versions, though exceptions may be raised for severe incompatibilities.
 
 #### `papermill` Backwards Compatibility
 
@@ -72,7 +72,7 @@ The `read_notebooks` function is very similar to the singular `read_notebook` ca
 
 #### `notebook_scraps`
 
-A collection of scraps keyed by the notebook's id (defaulted to file basename) and valued with that notebook's `scraps` collection. This is useful for differentating the source a particular scrap.
+A collection of scraps keyed by the notebook's id (defaulted to file basename) and valued with that notebook's `scraps` collection. This is useful for differentiating the source a particular scrap.
 
 #### `scraps`
 
@@ -104,4 +104,4 @@ When adding encoders, ensure they are tested with a variety of positive and nega
 
 ### Scrapbook Schema Version Changes
 
-Whenever the scrapbook schmea changes ensure there are test for older schema payloads, including tests that read from files with the old schmea. We want strong guarantees that scrapbook version changes do not break existing execution patterns during version transitions.
+Whenever the scrapbook schema changes ensure there are test for older schema payloads, including tests that read from files with the old schema. We want strong guarantees that scrapbook version changes do not break existing execution patterns during version transitions.
