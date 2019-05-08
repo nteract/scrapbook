@@ -312,3 +312,10 @@ def test_reglue_warning(kernel_mock, notebook_result):
     kernel_mock.return_value = False
     with pytest.warns(UserWarning):
         notebook_result.reglue('number')
+
+
+@mock.patch("scrapbook.utils.is_kernel")
+def test_reglue_kernel_no_warning(kernel_mock, notebook_result, recwarn):
+    kernel_mock.return_value = True
+    notebook_result.reglue('number')
+    assert len(recwarn) == 0
