@@ -21,6 +21,7 @@ def is_kernel():
             return getattr(ipy, 'kernel', None) is not None
     return False
 
+
 def kernel_required(f):
     @wraps(f)
     def wrapper(*args, **kwds):
