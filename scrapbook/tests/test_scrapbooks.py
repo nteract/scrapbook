@@ -11,8 +11,15 @@ from IPython.display import Markdown
 from pandas.util.testing import assert_frame_equal
 
 from . import get_notebook_path
-from .. import read_notebooks
+from .. import read_notebooks, utils
 from ..scraps import Scrap, Scraps
+
+
+@pytest.fixture(scope='session', autouse=True)
+def kernel_mock():
+    """Mocks the kernel to capture warnings during testing"""
+    with mock.patch.object(utils, 'is_kernel') as _fixture:
+        yield _fixture
 
 
 class AnyMarkdownWith(Markdown):

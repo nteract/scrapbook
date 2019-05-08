@@ -20,8 +20,10 @@ from .models import Notebook, Scrapbook
 from .scraps import Scrap, scrap_to_payload
 from .schemas import GLUE_PAYLOAD_FMT
 from .encoders import registry as encoder_registry
+from .utils import kernel_required
 
 
+@kernel_required
 def glue(name, scrap, encoder=None, display=None):
     """
     Records a scrap (data value) in the given notebook cell.
