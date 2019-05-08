@@ -1,14 +1,13 @@
 import warnings
-
 from functools import wraps
 
 from .version import version as sb_version
 
 
 def deprecated(version, replacement=None):
-    '''
-    Warns the user that something is deprecated until `version`.
-    '''
+    """
+    Warns the user that something is deprecated. Removal planned in `version` release.
+    """
 
     def wrapper(func):
         @wraps(func)

@@ -1,8 +1,8 @@
 # Development Guide
 
-_Note: If you haven't read the CONTRIBUTING.md instruction, make sure to do so first before continuing._
+_Note: Please read the CONTRIBUTING.md instructions, before continuing._
 
-The goal of this document is to help outline the various mechanisms within the repo and how they function. This is intended to help with development and code review processes to add context such work for less familiar developers.
+This document outlines the various mechanisms within the repo and how they function. This is intended to help with development and code review processes and to add context for less familiar developers.
 
 _Warning: The contracts below and their roles are subject to moderate changes until a 1.0 roadmap / release is reached._
 
@@ -16,7 +16,7 @@ When saving encoded data, display outputs are persisted with a media type of `ap
 
 ### Display Data
 
-Unlike encoded data, pure display data such as graphs, text, or images are displayed as though `ipython.display(scrap)` were called. Except that the metadata of the saved object has an additional `"scrapbook"` dictionary of the shape `{"name": name, "data": False, "display": True}`. This is done for two reason. First, the `scrap` is rendered in the browser while still be retrievable by name. And second, to avoid duplicating potentially large objects in both the display and data outputs. When a notebook is read it combines the display data back with any associated encoded data with the same name.
+Unlike encoded data, pure display data such as graphs, text, or images are displayed as though `ipython.display(scrap)` were called. Except that the metadata of the saved object has an additional `"scrapbook"` dictionary of the shape `{"name": name, "data": False, "display": True}`. This is done for two reason. First, the `scrap` is rendered in the browser while still being retrievable by name. And second, to avoid duplicating potentially large objects in both the display and data outputs. When a notebook is read it combines the display data back with any associated encoded data with the same name.
 
 ## API Contracts
 
@@ -24,13 +24,13 @@ Effectively the repo splits code execution into two groups: (re)writing data in 
 
 ### `glue` / `reglue`
 
-When executing form within a kernel, the `glue` function converts data into display outputs that can be persisted within a notebook, or other json storage format. For the sake of simplicity we'll just refer to this pattern in reference to the notebook usecase, with the knowledge that one could use it in any kernel execution context.
+When executing from within a kernel, the `glue` function converts data into display outputs that can be persisted within a notebook, or other json storage format. For the sake of simplicity we'll just refer to this pattern in reference to the notebook usecase, with the knowledge that one could use it in any kernel execution context.
 
-The `reglue` function is simply a mechnism for transfering `glue`ed data into a new notebook. Operationally it needs fewer control because the context of storage and persistence is already encapsulated in the original `scrap`.
+The `reglue` function is simply a mechnism for transfering `glue`ed data into a new notebook. Operationally it needs fewer controls because the context of storage and persistence is already encapsulated in the original `scrap`.
 
 #### `name`
 
-The name to persist data against. Repeating a `glue` operation with the same `name` will cause reads to ignore earlier saved values.
+The name to persist data against. If a `glue` operation is repeated with the same `name`, reads will ignore earlier saved values.
 
 #### `scrap`
 
@@ -38,7 +38,7 @@ The raw data to persist in the notebook. If the `scrap` type / contents can't be
 
 #### `encoder`
 
-The `encoder` specifies the handler type which is used to translate python objects into a format that can be saved within a notebook. The named encoder is responsible for ensuring that data can be transformed bidirectly in a best-effort for accuracy. Times when this cannot be perfectly guaranteed usually involve floating point rounding or complex class transformations.
+The `encoder` specifies the handler type which is used to translate python objects into a format that can be saved within a notebook. The named encoder is responsible for ensuring that data can be transformed bidirectionally in a best-effort for accuracy. Times when this cannot be perfectly guaranteed usually involve floating point rounding or complex class transformations.
 
 Assigning `encoder` to the value of `"display"` is a special assignment which will cause the scrap data to only persist display results and not persist any raw data. This assignment defaults the `display` argument to be `True` if not provided.
 
@@ -92,7 +92,7 @@ The `Scraps` model is a light wrapper on an ordered dict which includes some fil
 
 ## Testing
 
-When testing scrapbook there's a few core patterns that should be respected when it makes sense to do so.
+When creating tests for scrapbook there are a few core patterns that should be respected if possible.
 
 ### Read from Notebooks
 
