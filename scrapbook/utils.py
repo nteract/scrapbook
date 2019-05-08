@@ -2,7 +2,7 @@
 """
 utils.py
 
-Provides the base API calls for scrapbook
+Provides the utilities for scrapbook functions and operations.
 """
 import sys
 import warnings
@@ -13,20 +13,13 @@ def is_kernel():
     """
     Returns True if execution context is inside a kernel
     """
-    in_ipython = False
-    in_ipython_kernel = False
-
     # if IPython hasn't been imported, there's nothing to check
     if 'IPython' in sys.modules:
         from IPython import get_ipython
-        ip = get_ipython()
-        in_ipython = ip is not None
-
-    if in_ipython:
-        in_ipython_kernel = getattr(ip, 'kernel', None) is not None
-
-    return in_ipython_kernel
-
+        ipy = get_ipython()
+        if ipy is not None:
+            return getattr(ipy, 'kernel', None) is not None
+    return False
 
 def kernel_required(f):
     @wraps(f)
