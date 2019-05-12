@@ -62,10 +62,10 @@ def glue(name, scrap, encoder=None, display=None):
         Name of the value to record.
     scrap: any
         The value to record.
-    storage: str (optional)
-        The data protocol name to respect in persisting data
+    encoder: str (optional)
+        The name of the handler to use in persisting data in the notebook.
     display: any (optional)
-        An indicator for ...
+        An indicator for persisting controlling displays for the named record.
     """
 
     # TODO: Implement the cool stuff. Remote storage indicators?!? Maybe remote media type?!?

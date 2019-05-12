@@ -22,7 +22,7 @@ from .scraps import Scrap, Scraps, payload_to_scrap, scrap_to_payload
 from .schemas import GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX
 from .encoders import registry as encoder_registry
 from .exceptions import ScrapbookException
-from .utils import kernel_required
+from .utils import kernel_required, deprecated
 
 
 def merge_dicts(dicts):
@@ -193,7 +193,12 @@ class Notebook(object):
         return [cell.get("execution_count") for cell in self.cells]
 
     @property
+    @deprecated('0.4.0', '`metrics`')
     def papermill_metrics(self):
+        return self.metrics
+
+    @property
+    def metrics(self):
         """pandas dataframe: dataframe of cell execution counts and times"""
         df = pd.DataFrame(columns=["filename", "cell", "value", "type"])
 
@@ -226,6 +231,7 @@ class Notebook(object):
         return df
 
     @property
+    @deprecated('1.0.0')
     def papermill_record_dataframe(self):
         """pandas dataframe: dataframe of cell scraps"""
         # Meant for backwards compatibility to papermill's dataframe method
@@ -239,6 +245,7 @@ class Notebook(object):
         )
 
     @property
+    @deprecated('1.0.0')
     def papermill_dataframe(self):
         """pandas dataframe: dataframe of notebook parameters and cell scraps"""
         # Meant for backwards compatibility to papermill's dataframe method
@@ -335,6 +342,7 @@ class Scrapbook(collections.MutableMapping):
         return self._notebooks.__len__()
 
     @property
+    @deprecated('1.0.0')
     def papermill_dataframe(self):
         """list: a list of data names from a collection of notebooks"""
 
@@ -349,12 +357,17 @@ class Scrapbook(collections.MutableMapping):
         return pd.concat(df_list).reset_index(drop=True)
 
     @property
+    @deprecated('0.4.0', 'metrics')
     def papermill_metrics(self):
+        return self.metrics
+
+    @property
+    def metrics(self):
         """list: a list of metrics from a collection of notebooks"""
         df_list = []
         for key in self._notebooks:
             nb = self._notebooks[key]
-            df = nb.papermill_metrics
+            df = nb.metrics
             df["key"] = key
             df_list.append(df)
         return pd.concat(df_list).reset_index(drop=True)
