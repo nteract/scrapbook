@@ -48,7 +48,8 @@ class Notebook(object):
 
     def __init__(self, node_or_path):
         if isinstance(node_or_path, string_types):
-            if not node_or_path.endswith(".ipynb"):
+
+            if ".ipynb" not in node_or_path:
                 raise ValueError(
                     "Requires an '.ipynb' file extension. Provided path: '{}'".format(
                         node_or_path
