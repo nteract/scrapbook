@@ -13,7 +13,7 @@ from . import get_notebook_path, get_notebook_dir
 from .. import read_notebook, utils
 from ..models import Notebook
 from ..exceptions import ScrapbookException
-
+from papermill.exceptions import PapermillOptionalDependencyException
 
 try:
     FileNotFoundError
@@ -51,8 +51,18 @@ def test_bad_path():
 
 
 def test_bad_ext():
-    with pytest.raises(ValueError):
+    with pytest.raises(Warning):
         Notebook("not/a/valid/extension.py")
+
+
+def test_good_ext_for_url():
+    with pytest.raises(PapermillOptionalDependencyException):
+        Notebook("abs://mystorage.blob.core.windows.net/my-actual-notebook.ipynb?sig=some-unique-secret-token")
+
+
+def test_bad_ext_for_url():
+    with pytest.raises(Warning):
+        Notebook("abs://mystorage.blob.core.windows.net/my-actual-notebook.txt?sig=some-unique-secret-token")
 
 
 def test_filename(notebook_result):

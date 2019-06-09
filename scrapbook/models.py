@@ -10,6 +10,7 @@ import copy
 import nbformat
 import collections
 import pandas as pd
+from urllib import parse
 
 from six import string_types
 from collections import OrderedDict
@@ -48,9 +49,9 @@ class Notebook(object):
 
     def __init__(self, node_or_path):
         if isinstance(node_or_path, string_types):
-
-            if ".ipynb" not in node_or_path:
-                raise ValueError(
+            path = parse.urlparse(node_or_path).path
+            if not os.path.splitext(path)[-1].endswith('ipynb'):
+                raise Warning(
                     "Requires an '.ipynb' file extension. Provided path: '{}'".format(
                         node_or_path
                     )
