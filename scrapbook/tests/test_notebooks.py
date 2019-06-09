@@ -57,12 +57,16 @@ def test_bad_ext():
 
 def test_good_ext_for_url():
     with pytest.raises(PapermillOptionalDependencyException):
-        Notebook("abs://mystorage.blob.core.windows.net/my-actual-notebook.ipynb?sig=some-unique-secret-token")
+        params = "?sig=some-unique-secret-token"
+        url = "abs://mystorage.blob.core.windows.net/my-actual-notebook.ipynb" + params
+        Notebook(url)
 
 
 def test_bad_ext_for_url():
     with pytest.raises(Warning):
-        Notebook("abs://mystorage.blob.core.windows.net/my-actual-notebook.txt?sig=some-unique-secret-token")
+        params = "?sig=some-unique-secret-token"
+        url = "abs://mystorage.blob.core.windows.net/my-actual-notebook.txt" + params
+        Notebook(url)
 
 
 def test_filename(notebook_result):
