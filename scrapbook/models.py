@@ -12,12 +12,6 @@ import collections
 import pandas as pd
 import sys
 
-if sys.version_info > (3, 0, 0):
-    from urllib import parse
-    urlparse = parse.urlparse
-else:
-    from urlparse import urlparse
-
 from six import string_types
 from collections import OrderedDict
 from IPython.display import display as ip_display, Markdown
@@ -30,6 +24,12 @@ from .schemas import GLUE_PAYLOAD_PREFIX, RECORD_PAYLOAD_PREFIX
 from .encoders import registry as encoder_registry
 from .exceptions import ScrapbookException
 from .utils import kernel_required, deprecated
+
+if sys.version_info > (3, 0, 0):
+    from urllib import parse
+    urlparse = parse.urlparse
+else:
+    from urlparse import urlparse
 
 
 def merge_dicts(dicts):
