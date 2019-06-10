@@ -55,11 +55,16 @@ def test_bad_ext():
         Notebook("not/a/valid/extension.py")
 
 
-def test_good_ext_for_url():
-    with pytest.raises(PapermillOptionalDependencyException):
-        params = "?sig=some-unique-secret-token"
-        url = "abs://mystorage.blob.core.windows.net/my-actual-notebook.ipynb" + params
+@mock.patch("papermill.iorw.papermill_io.read")
+def test_good_ext_for_url(mock_read):
+    params = "?sig=some-unique-secret-token"
+    url = "abs://mystorage.blob.core.windows.net/my-actual-notebook.ipynb" + params
+    try:
         Notebook(url)
+    except TypeError:
+        pass  # this means no valid json is returned by the reader
+
+    mock_read.assert_called_once()
 
 
 def test_bad_ext_for_url():
