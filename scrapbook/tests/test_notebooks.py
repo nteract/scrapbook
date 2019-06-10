@@ -13,7 +13,6 @@ from . import get_notebook_path, get_notebook_dir
 from .. import read_notebook, utils
 from ..models import Notebook
 from ..exceptions import ScrapbookException
-from papermill.exceptions import PapermillOptionalDependencyException
 
 try:
     FileNotFoundError
