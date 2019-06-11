@@ -3,6 +3,7 @@
 import mock
 import pytest
 import collections
+import json
 
 import pandas as pd
 
@@ -56,12 +57,22 @@ def test_bad_ext():
 
 @mock.patch("papermill.iorw.papermill_io.read")
 def test_good_ext_for_url(mock_read):
+    sample_output = {
+        "cells": [{
+            "cell_type": "code",
+            "execution_count": 1,
+            "metadata": {},
+            "outputs": [],
+            "source": []
+        }]
+    }
+
+    mock_read.return_value = json.dumps(sample_output)
+
     params = "?sig=some-unique-secret-token"
     url = "abs://mystorage.blob.core.windows.net/my-actual-notebook.ipynb" + params
-    try:
-        Notebook(url)
-    except TypeError:
-        pass  # this means no valid json is returned by the reader
+
+    Notebook(url)
 
     mock_read.assert_called_once()
 
