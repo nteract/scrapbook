@@ -3,6 +3,7 @@
 import mock
 import pytest
 import collections
+import json
 
 import pandas as pd
 
@@ -13,7 +14,6 @@ from . import get_notebook_path, get_notebook_dir
 from .. import read_notebook, utils
 from ..models import Notebook
 from ..exceptions import ScrapbookException
-
 
 try:
     FileNotFoundError
@@ -51,8 +51,37 @@ def test_bad_path():
 
 
 def test_bad_ext():
-    with pytest.raises(ValueError):
+    with pytest.raises(Warning):
         Notebook("not/a/valid/extension.py")
+
+
+@mock.patch("papermill.iorw.papermill_io.read")
+def test_good_ext_for_url(mock_read):
+    sample_output = {
+        "cells": [{
+            "cell_type": "code",
+            "execution_count": 1,
+            "metadata": {},
+            "outputs": [],
+            "source": []
+        }]
+    }
+
+    mock_read.return_value = json.dumps(sample_output)
+
+    params = "?sig=some-unique-secret-token"
+    url = "abs://mystorage.blob.core.windows.net/my-actual-notebook.ipynb" + params
+
+    Notebook(url)
+
+    mock_read.assert_called_once()
+
+
+def test_bad_ext_for_url():
+    with pytest.raises(Warning):
+        params = "?sig=some-unique-secret-token"
+        url = "abs://mystorage.blob.core.windows.net/my-actual-notebook.txt" + params
+        Notebook(url)
 
 
 def test_filename(notebook_result):

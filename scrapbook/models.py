@@ -24,6 +24,11 @@ from .encoders import registry as encoder_registry
 from .exceptions import ScrapbookException
 from .utils import kernel_required, deprecated
 
+try:
+    from urllib.parse import urlparse  # Py3
+except ImportError:
+    from urlparse import urlparse  # Py2
+
 
 def merge_dicts(dicts):
     iterdicts = iter(dicts)
@@ -48,8 +53,9 @@ class Notebook(object):
 
     def __init__(self, node_or_path):
         if isinstance(node_or_path, string_types):
-            if not node_or_path.endswith(".ipynb"):
-                raise ValueError(
+            path = urlparse(node_or_path).path
+            if not os.path.splitext(path)[-1].endswith('ipynb'):
+                raise Warning(
                     "Requires an '.ipynb' file extension. Provided path: '{}'".format(
                         node_or_path
                     )
