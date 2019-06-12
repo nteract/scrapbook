@@ -6,7 +6,7 @@ flake8
 tox
 mock
 ipython
-papermill
+papermill[dev]
 pytest>=4.1
 pytest-cov>=2.6.1
 pytest-mock>=1.10

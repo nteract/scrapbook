@@ -44,7 +44,7 @@ reqs_s3 = ["papermill[s3]"]
 reqs_azure = ["papermill[azure]"]
 reqs_gcs = ["papermill[gcs]"]
 reqs_all = ["papermill[all]"]
-reqs_dev = read_reqs("requirements-dev.txt") + reqs_all
+reqs_dev = read_reqs("requirements-dev.txt")
 extras_require = {
     "test": reqs_dev,
     "dev": reqs_dev,
