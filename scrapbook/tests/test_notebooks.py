@@ -158,7 +158,7 @@ def test_record_scraps_collection_dataframe(notebook_backwards_result):
     assert_frame_equal(notebook_backwards_result.scraps.dataframe, expected_df, check_exact=True)
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_reglue_display(mock_display, notebook_result):
     notebook_result.reglue("output")
     mock_display.assert_called_once_with(
@@ -168,7 +168,7 @@ def test_reglue_display(mock_display, notebook_result):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_reglue_scrap(mock_display, notebook_result):
     notebook_result.reglue("one")
     mock_display.assert_called_once_with(
@@ -185,7 +185,7 @@ def test_reglue_scrap(mock_display, notebook_result):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_reglue_display_unattached(mock_display, notebook_result):
     notebook_result.reglue("output", unattached=True)
     mock_display.assert_called_once_with(
@@ -193,7 +193,7 @@ def test_reglue_display_unattached(mock_display, notebook_result):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_reglue_scrap_unattached(mock_display, notebook_result):
     notebook_result.reglue("one", unattached=True)
     mock_display.assert_called_once_with(
@@ -215,7 +215,7 @@ def test_missing_reglue(notebook_result):
         notebook_result.reglue("foo")
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_missing_reglue_no_error(mock_display, notebook_result):
     notebook_result.reglue("foo", raise_on_missing=False)
     mock_display.assert_called_once_with(
@@ -223,7 +223,7 @@ def test_missing_reglue_no_error(mock_display, notebook_result):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_reglue_rename(mock_display, notebook_result):
     notebook_result.reglue("output", "new_output")
     mock_display.assert_called_once_with(

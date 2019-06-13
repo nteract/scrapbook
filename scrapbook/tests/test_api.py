@@ -83,7 +83,7 @@ def kernel_mock():
         ),
     ],
 )
-@mock.patch("scrapbook.api.ip_display")
+@mock.patch("IPython.display.display")
 def test_glue(mock_display, name, scrap, encoder, data, metadata):
     glue(name, scrap, encoder)
     mock_display.assert_called_once_with(data, metadata=metadata, raw=True)
@@ -141,7 +141,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
         ),
     ],
 )
-@mock.patch("scrapbook.api.ip_display")
+@mock.patch("IPython.display.display")
 def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, display):
     glue(name, obj, encoder, display)
     mock_display.assert_called_once_with(data, metadata=metadata, raw=True)
@@ -186,7 +186,7 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
         ),
     ],
 )
-@mock.patch("scrapbook.api.ip_display")
+@mock.patch("IPython.display.display")
 def test_glue_plus_display(
     mock_display,
     name,

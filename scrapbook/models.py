@@ -13,7 +13,6 @@ import pandas as pd
 
 from six import string_types
 from collections import OrderedDict
-from IPython.display import display as ip_display, Markdown
 
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import papermill_io
@@ -282,8 +281,9 @@ class Notebook(object):
         unattached : bool
             indicator for rendering without making the display recallable as scrapbook data
         """
-        # Avoid circular imports
+        # Avoid circular and make slow imports lazy
         from .api import _prepare_ipy_data_format, _prepare_ipy_display_format
+        from IPython.display import display as ip_display
 
         if name not in self.scraps:
             if raise_on_missing:
@@ -410,6 +410,8 @@ class Scrapbook(collections.MutableMapping):
         header : bool (default: True)
             indicator for if the scraps should render with a header
         """
+        # Keep slow import lazy
+        from IPython.display import display as ip_display, Markdown
 
         def trim_repr(data):
             # Generate a small data representation for display purposes

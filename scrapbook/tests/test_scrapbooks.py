@@ -297,7 +297,7 @@ def test_papermill_dataframe(notebook_collection):
     assert_frame_equal(notebook_collection.papermill_dataframe, expected_df)
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_scraps_report(mock_display, notebook_collection):
     notebook_collection.scraps_report()
     mock_display.assert_has_calls(
@@ -317,7 +317,7 @@ def test_scraps_report(mock_display, notebook_collection):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_scraps_report_no_headers(mock_display, notebook_collection):
     notebook_collection.scraps_report(headers=None)
     mock_display.assert_has_calls(
@@ -330,7 +330,7 @@ def test_scraps_report_no_headers(mock_display, notebook_collection):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_scraps_report_with_data(mock_display, notebook_collection):
     notebook_collection.scraps_report(include_data=True)
     mock_display.assert_has_calls(
@@ -366,7 +366,7 @@ def test_scraps_report_with_data(mock_display, notebook_collection):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_scraps_report_with_data_no_headers(mock_display, notebook_collection):
     notebook_collection.scraps_report(headers=None, include_data=True)
     mock_display.assert_has_calls(
@@ -391,7 +391,7 @@ def test_scraps_report_with_data_no_headers(mock_display, notebook_collection):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_scraps_report_with_scrap_list_names(mock_display, notebook_collection):
     notebook_collection.scraps_report(scrap_names=["output"])
     mock_display.assert_has_calls(
@@ -407,7 +407,7 @@ def test_scraps_report_with_scrap_list_names(mock_display, notebook_collection):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_scraps_report_with_scrap_string_name(mock_display, notebook_collection):
     notebook_collection.scraps_report(scrap_names="one_only")
     mock_display.assert_has_calls(
@@ -423,7 +423,7 @@ def test_scraps_report_with_scrap_string_name(mock_display, notebook_collection)
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_scraps_report_with_notebook_names(mock_display, notebook_collection):
     notebook_collection.scraps_report(notebook_names="result1")
     mock_display.assert_has_calls(
@@ -437,7 +437,7 @@ def test_scraps_report_with_notebook_names(mock_display, notebook_collection):
     )
 
 
-@mock.patch("scrapbook.models.ip_display")
+@mock.patch("IPython.display.display")
 def test_scraps_report_with_scrap_and_notebook_names(mock_display, notebook_collection):
     notebook_collection.scraps_report(
         scrap_names=["output"], notebook_names=["result1"]
