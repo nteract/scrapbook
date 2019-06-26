@@ -281,7 +281,7 @@ class Notebook(object):
         unattached : bool
             indicator for rendering without making the display recallable as scrapbook data
         """
-        # Avoid circular and make slow imports lazy
+        # Avoid circular imports and make slow imports lazy
         from .api import _prepare_ipy_data_format, _prepare_ipy_display_format
         from IPython.display import display as ip_display
 
