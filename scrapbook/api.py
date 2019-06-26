@@ -7,11 +7,7 @@ Provides the base API calls for scrapbook
 from __future__ import unicode_literals
 import os
 
-import IPython
-
 from six import string_types
-
-from IPython.display import display as ip_display
 
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
@@ -67,6 +63,9 @@ def glue(name, scrap, encoder=None, display=None):
     display: any (optional)
         An indicator for persisting controlling displays for the named record.
     """
+    # Keep slow import lazy
+    import IPython
+    from IPython.display import display as ip_display
 
     # TODO: Implement the cool stuff. Remote storage indicators?!? Maybe remote media type?!?
     # TODO: Make this more modular
