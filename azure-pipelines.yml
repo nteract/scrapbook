@@ -34,11 +34,10 @@ jobs:
     - script: tox -e $(tox.env)
       displayName: 'Run tox -e $(tox.env)'
 
-    - script: |
-        pip install coverage codecov
-        
+    - script: |        
         # run for py36 
         if [ "$(python.version)" = "3.6" ]; then
+          pip install coverage codecov
           coverage xml -i
           codecov
         fi
