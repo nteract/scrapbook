@@ -33,4 +33,25 @@ jobs:
 
     - script: tox -e $(tox.env)
       displayName: 'Run tox -e $(tox.env)'
+
+    - script: |
+        if [ ! -f .coverage.* ]; then
+            echo No coverage data found.
+            exit 0
+        fi
+
+        pip install coverage codecov
+
+        # run for py36 
+        if [ "$(python.version)" = "3.6" ]; then
+          coverage xml -i
+          codecov
+        fi
+
+        env:
+          CODECOV_TOKEN: $(codecov.token)
+
+        displayName: 'Report coverage'
+        condition: succeeded()
+
       
