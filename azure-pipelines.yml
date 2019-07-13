@@ -1,6 +1,9 @@
 trigger:
 - master
 
+variables:
+- group: codecov 
+
 jobs:
   - job: 'Test'
 
@@ -43,7 +46,7 @@ jobs:
         fi
 
       env:
-        CODECOV_TOKEN: $(codecov.token)
+        CODECOV_TOKEN: $(CODECOV_TOKEN)
         
       displayName: 'Report coverage'
       condition: succeeded()
