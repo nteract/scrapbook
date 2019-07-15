@@ -2,7 +2,7 @@ numpy <= 1.16 ; python_version < "3.0"
 pandas <= 0.24 ; python_version < "3.0"
 pandas ; python_version >= "3.0"
 six
-papermill[all];python_version<'3.0'
+papermill[all];python_version<"3.0"
 papermill;python_version>= "3.5"
 jsonschema
 future

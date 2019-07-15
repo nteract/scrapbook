@@ -40,16 +40,23 @@ jobs:
 
     steps:
     - task: UsePythonVersion@0
+      displayName: 'Get Python for Python tools'
+      inputs:
+        versionSpec: '3.7'
+        addToPath: false
+      name: pyTools
+
+    - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pip
+        displayName: 'Install Python-based tools upgrading pip.'
+
+    - script: $(pyTools.pythonLocation)/bin/pip install --upgrade tox
+        displayName: 'Install Python-based tools upgrading tox.'
+
+    - task: UsePythonVersion@0
       displayName: 'Use Python $(python.version) for tests'
       inputs:
         versionSpec: '$(python.version)'
         architecture: 'x64'
 
-    - script: pip install -U pip
-      displayName: 'Upgrade pip'
-
-    - script: pip install tox
-      displayName: 'Install tox'
-
-    - script: tox -e $(tox.env)
+    - script: $(pyTools.pythonLocation)/bin/tox -e $(tox.env)
       displayName: 'Run tox -e $(tox.env)'
