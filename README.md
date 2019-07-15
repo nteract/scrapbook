@@ -4,7 +4,8 @@
 
 <!---(binder links generated at https://mybinder.readthedocs.io/en/latest/howto/badges.html and compressed at https://tinyurl.com) -->
 
-[![Build Status](https://travis-ci.org/nteract/scrapbook.svg?branch=master)](https://travis-ci.org/nteract/scrapbook)
+[![Travis Build Status](https://travis-ci.org/nteract/scrapbook.svg?branch=master)](https://travis-ci.org/nteract/scrapbook)
+[![Azure Build Status](https://dev.azure.com/nteract/nteract/_apis/build/status/nteract.scrapbook?branchName=master)](https://dev.azure.com/nteract/nteract/_build/latest?definitionId=6&branchName=master)
 [![image](https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=master)](https://codecov.io/github/nteract/scrapbook=master)
 [![Documentation Status](https://readthedocs.org/projects/nteract-scrapbook/badge/?version=latest)](https://nteract-scrapbook.readthedocs.io/en/latest/?badge=latest)
 [![badge](https://tinyurl.com/y3moqkmc)](https://mybinder.org/v2/gh/nteract/scrapbook/master?filepath=binder%2Freglue_highlight_dates.ipynb)
