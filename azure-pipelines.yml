@@ -47,10 +47,10 @@ jobs:
       name: pyTools
 
     - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pip
-        displayName: 'Install Python-based tools upgrading pip.'
+      displayName: 'Install Python-based tools pip.'
 
     - script: $(pyTools.pythonLocation)/bin/pip install --upgrade tox
-        displayName: 'Install Python-based tools upgrading tox.'
+      displayName: 'Install Python-based tools tox'
 
     - task: UsePythonVersion@0
       displayName: 'Use Python $(python.version) for tests'
