@@ -29,3 +29,6 @@ prune docs/_build
 prune binder
 # Scripts
 graft scripts
+# Build files
+prune .tavis.yml
+prune azure-pipelines.yml
