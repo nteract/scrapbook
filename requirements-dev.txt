@@ -6,8 +6,8 @@ flake8
 tox
 mock
 ipython
-papermill[all];python_version=='2.7'
-papermill[dev];python_version >= "3.5"
+papermill[all];python_version<'3.0'
+papermill[dev];python_version>= "3.5"
 pytest-cov>=2.6.1
 pytest-mock>=1.10
 pytest-env>=0.6.2
