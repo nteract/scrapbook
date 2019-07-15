@@ -1,4 +1,6 @@
-pandas
+pandas <= 0.24 ; python_version < "3.0"
+numpy <= 1.16 ; python_version < "3.0"
+pandas ; python_version >= "3.0"
 six
 papermill
 jsonschema
