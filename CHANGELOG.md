@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.3.1
+
+- Adjusted python 2.7 sci-kit requirements
+
 ## 0.3.0
 
 - Added a warning for gluing an object outside of a kernel context
