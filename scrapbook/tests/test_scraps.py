@@ -39,10 +39,10 @@ from ..exceptions import ScrapbookDataException
             },
         ),
         (
-            Scrap(name="foo", data=[u"😍"], encoder="json"),
+            Scrap(name="foo", data=["😍"], encoder="json"),
             {
                 "name": "foo",
-                "data": [u"😍"],
+                "data": ["😍"],
                 "encoder": "json",
                 "version": LATEST_SCRAP_VERSION,
             },
@@ -86,11 +86,11 @@ def test_scrap_to_payload(test_input, expected):
         (
             {
                 "name": "foo",
-                "data": [u"😍"],
+                "data": ["😍"],
                 "encoder": "json",
                 "version": LATEST_SCRAP_VERSION,
             },
-            Scrap(name="foo", data=[u"😍"], encoder="json"),
+            Scrap(name="foo", data=["😍"], encoder="json"),
         ),
     ],
 )

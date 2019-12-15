@@ -281,13 +281,13 @@ def test_papermill_dataframe(notebook_collection):
         [
             ("bar", "hello", "parameter", "result1.ipynb", "result1"),
             ("foo", 1, "parameter", "result1.ipynb", "result1"),
-            ("dict", {u"a": 1, u"b": 2}, "record", "result1.ipynb", "result1"),
+            ("dict", {"a": 1, "b": 2}, "record", "result1.ipynb", "result1"),
             ("list", [1, 2, 3], "record", "result1.ipynb", "result1"),
             ("number", 1, "record", "result1.ipynb", "result1"),
             ("one", 1, "record", "result1.ipynb", "result1"),
             ("bar", "world", "parameter", "result2.ipynb", "result2"),
             ("foo", 2, "parameter", "result2.ipynb", "result2"),
-            ("dict", {u"a": 3, u"b": 4}, "record", "result2.ipynb", "result2"),
+            ("dict", {"a": 3, "b": 4}, "record", "result2.ipynb", "result2"),
             ("list", [4, 5, 6], "record", "result2.ipynb", "result2"),
             ("number", 2, "record", "result2.ipynb", "result2"),
             ("two", 2, "record", "result2.ipynb", "result2"),
@@ -304,15 +304,15 @@ def test_scraps_report(mock_display, notebook_collection):
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Hello World!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### one_only")),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("<hr>")),
             mock.call(AnyMarkdownWith("### result2")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Hello World 2!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### two_only")),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
         ]
     )
 
@@ -322,10 +322,10 @@ def test_scraps_report_no_headers(mock_display, notebook_collection):
     notebook_collection.scraps_report(headers=None)
     mock_display.assert_has_calls(
         [
-            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
-            mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Hello World!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Hello World 2!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
         ]
     )
 
@@ -337,31 +337,31 @@ def test_scraps_report_with_data(mock_display, notebook_collection):
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Hello World!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### one_only")),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### one")),
-            mock.call(u"1"),
+            mock.call("1"),
             mock.call(AnyMarkdownWith("#### number")),
-            mock.call(u"1"),
+            mock.call("1"),
             mock.call(AnyMarkdownWith("#### list")),
-            mock.call(u"[1, 2, 3]"),
+            mock.call("[1, 2, 3]"),
             mock.call(AnyMarkdownWith("#### dict")),
-            mock.call(u"{'a': 1, 'b': 2}" if six.PY3 else u"{u'a': 1, u'b': 2}"),
+            mock.call("{'a': 1, 'b': 2}" if six.PY3 else "{u'a': 1, u'b': 2}"),
             mock.call(AnyMarkdownWith("<hr>")),
             mock.call(AnyMarkdownWith("### result2")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Hello World 2!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### two_only")),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### two")),
-            mock.call(u"2"),
+            mock.call("2"),
             mock.call(AnyMarkdownWith("#### number")),
-            mock.call(u"2"),
+            mock.call("2"),
             mock.call(AnyMarkdownWith("#### list")),
-            mock.call(u"[4, 5, 6]"),
+            mock.call("[4, 5, 6]"),
             mock.call(AnyMarkdownWith("#### dict")),
-            mock.call(u"{'a': 3, 'b': 4}" if six.PY3 else u"{u'a': 3, u'b': 4}"),
+            mock.call("{'a': 3, 'b': 4}" if six.PY3 else "{u'a': 3, u'b': 4}"),
         ]
     )
 
@@ -371,21 +371,21 @@ def test_scraps_report_with_data_no_headers(mock_display, notebook_collection):
     notebook_collection.scraps_report(headers=None, include_data=True)
     mock_display.assert_has_calls(
         [
-            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
-            mock.call(u"one: 1"),
-            mock.call(u"number: 1"),
-            mock.call(u"list: [1, 2, 3]"),
+            mock.call({"text/plain": "'Hello World!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
+            mock.call("one: 1"),
+            mock.call("number: 1"),
+            mock.call("list: [1, 2, 3]"),
             mock.call(
-                u"dict: {'a': 1, 'b': 2}" if six.PY3 else u"dict: {u'a': 1, u'b': 2}"
+                "dict: {'a': 1, 'b': 2}" if six.PY3 else "dict: {u'a': 1, u'b': 2}"
             ),
-            mock.call({u"text/plain": u"'Hello World 2!'"}, metadata={}, raw=True),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
-            mock.call(u"two: 2"),
-            mock.call(u"number: 2"),
-            mock.call(u"list: [4, 5, 6]"),
+            mock.call({"text/plain": "'Hello World 2!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
+            mock.call("two: 2"),
+            mock.call("number: 2"),
+            mock.call("list: [4, 5, 6]"),
             mock.call(
-                u"dict: {'a': 3, 'b': 4}" if six.PY3 else u"dict: {u'a': 3, u'b': 4}"
+                "dict: {'a': 3, 'b': 4}" if six.PY3 else "dict: {u'a': 3, u'b': 4}"
             ),
         ]
     )
@@ -430,9 +430,9 @@ def test_scraps_report_with_notebook_names(mock_display, notebook_collection):
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Hello World!'"}, metadata={}, raw=True),
             mock.call(AnyMarkdownWith("#### one_only")),
-            mock.call({u"text/plain": u"'Just here!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
         ]
     )
 
@@ -446,6 +446,6 @@ def test_scraps_report_with_scrap_and_notebook_names(mock_display, notebook_coll
         [
             mock.call(AnyMarkdownWith("### result1")),
             mock.call(AnyMarkdownWith("#### output")),
-            mock.call({u"text/plain": u"'Hello World!'"}, metadata={}, raw=True),
+            mock.call({"text/plain": "'Hello World!'"}, metadata={}, raw=True),
         ]
     )

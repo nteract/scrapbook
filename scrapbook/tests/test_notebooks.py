@@ -98,7 +98,7 @@ def test_parameters(notebook_result):
 
 def test_data_scraps(notebook_result):
     assert notebook_result.scraps.data_dict == {
-        "dict": {u"a": 1, u"b": 2},
+        "dict": {"a": 1, "b": 2},
         "list": [1, 2, 3],
         "number": 1,
         "one": 1,
@@ -134,7 +134,7 @@ def test_scraps_collection_dataframe(notebook_result):
             ("one", 1, "json", None),
             ("number", 1, "json", None),
             ("list", [1, 2, 3], "json", None),
-            ("dict", {u"a": 1, u"b": 2}, "json", None),
+            ("dict", {"a": 1, "b": 2}, "json", None),
             ("output", None, "display", AnyDict()),
             ("one_only", None, "display", AnyDict()),
         ],
@@ -149,7 +149,7 @@ def test_record_scraps_collection_dataframe(notebook_backwards_result):
             ("hello", "world", "json", None),
             ("number", 123, "json", None),
             ("some_list", [1, 3, 5], "json", None),
-            ("some_dict", {u"a": 1, u"b": 2}, "json", None),
+            ("some_dict", {"a": 1, "b": 2}, "json", None),
             ("some_display", None, "display", AnyDict()),
         ],
         columns=["name", "data", "encoder", "display"],
@@ -277,7 +277,7 @@ def test_scrap_dataframe(notebook_result):
             ("one", 1, "json", None, "result1.ipynb"),
             ("number", 1, "json", None, "result1.ipynb"),
             ("list", [1, 2, 3], "json", None, "result1.ipynb"),
-            ("dict", {u"a": 1, u"b": 2}, "json", None, "result1.ipynb"),
+            ("dict", {"a": 1, "b": 2}, "json", None, "result1.ipynb"),
             ("output", None, "display", AnyDict(), "result1.ipynb"),
             ("one_only", None, "display", AnyDict(), "result1.ipynb"),
         ],
@@ -297,7 +297,7 @@ def test_papermill_dataframe(notebook_result):
         [
             ("bar", "hello", "parameter", "result1.ipynb"),
             ("foo", 1, "parameter", "result1.ipynb"),
-            ("dict", {u"a": 1, u"b": 2}, "record", "result1.ipynb"),
+            ("dict", {"a": 1, "b": 2}, "record", "result1.ipynb"),
             ("list", [1, 2, 3], "record", "result1.ipynb"),
             ("number", 1, "record", "result1.ipynb"),
             ("one", 1, "record", "result1.ipynb"),
