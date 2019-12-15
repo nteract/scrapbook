@@ -3,6 +3,7 @@
 
 import pytest
 import base64
+import pyarrow
 import pandas as pd
 
 from io import BytesIO
@@ -197,6 +198,18 @@ def test_text_encode(test_input, expected):
                 }),
                 encoder="pandas")
         ),
+        # Nested lists of lists of strings are ok
+        (
+            Scrap(name="foo", data=pd.DataFrame(data=
+                {"foo": pd.Series([[["foo", "bar"]]], dtype='object')}),
+                encoder="pandas")
+        ),
+        # String objects are ok
+        (
+            Scrap(name="foo", data=pd.DataFrame(data=
+                {"foo": pd.Series(["bar"], dtype='object')}),
+                encoder="pandas")
+        ),
     ],
 )
 def test_pandas_encode_and_decode(test_input):
@@ -207,6 +220,30 @@ def test_pandas_encode_and_decode(test_input):
     assert scrap_back.name == test_input.name
     assert scrap.encoder == test_input.encoder
     assert scrap_back.encoder == test_input.encoder
+
+
+@pytest.mark.parametrize(
+    "test_input,exception_type",
+    [
+        # Dicts can't convert
+        (
+            Scrap(name="foo", data=pd.DataFrame(data=
+                {"foo": pd.Series([{"foo": "bar"}], dtype='object')}),
+                encoder="pandas"),
+            pyarrow.lib.ArrowNotImplementedError
+        ),
+        # Sets can't convert
+        (
+            Scrap(name="foo", data=pd.DataFrame(data=
+                {"foo": pd.Series([{"foo", "bar"}], dtype='object')}),
+                encoder="pandas"),
+            pyarrow.lib.ArrowInvalid
+        ),
+    ],
+)
+def test_unsupported_arrow_conversions(test_input, exception_type):
+    with pytest.raises(exception_type):
+        PandasArrowDataframeEncoder().encode(test_input)
 
 
 @pytest.fixture
