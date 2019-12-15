@@ -17,7 +17,7 @@ of the output notebook.
     sb.glue("number", 123)
     sb.glue("some_list", [1, 3, 5])
     sb.glue("some_dict", {"a": 1, "b": 2})
-    sb.glue("non_json", df, 'arrow')
+    sb.glue("non_json", df, 'pandas')
 
 The scrapbook library can be used later to recover scraps (recorded
 values) from the output notebook:
@@ -37,6 +37,17 @@ media type identifying the content encoding format and data. These
 outputs are not always visible in notebook rendering but still exist in
 the document. Scrapbook can then rehydrate the data associated with the
 notebook in the future by reading these cell outputs.
+
+Pandas
+------
+
+When glueing pandas dataframes, the library will use pyarrow to translate
+the dataframe to a base64 encoded parquet file. Because of this tool chain,
+certain nested objects will not encode cleanly and will raise an Arrow
+exception. Common nested objects that will fail include columns with dicts
+or sets within them, either directly or nested inside other objects. Over
+time these nested types should be more supported (nested lists work for
+example) as Arrow adds struct transformations.
 
 Display Outputs
 ---------------

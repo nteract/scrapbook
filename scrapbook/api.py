@@ -4,10 +4,8 @@ api.py
 
 Provides the base API calls for scrapbook
 """
-from __future__ import unicode_literals
 import os
-
-from six import string_types
+import pandas as pd
 
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
@@ -17,6 +15,24 @@ from .scraps import Scrap, scrap_to_payload
 from .schemas import GLUE_PAYLOAD_FMT
 from .encoders import registry as encoder_registry
 from .utils import kernel_required
+
+
+def determine_encoder(scrap):
+    # Keep slow import lazy
+    import IPython
+    from IPython.display import DisplayObject
+
+    if isinstance(scrap, str):
+        return "text"
+    elif isinstance(scrap, (list, dict)):
+        return "json"
+    elif isinstance(scrap, DisplayObject):
+        return "display"
+    elif isinstance(scrap, pd.DataFrame):
+        return "pandas"
+    else:
+        # This may be more complex in the future
+        return "json"
 
 
 @kernel_required
@@ -72,13 +88,7 @@ def glue(name, scrap, encoder=None, display=None):
     # TODO: Use translators to determine best storage type
     # ...
     if not encoder:
-        if isinstance(scrap, string_types):
-            encoder = "text"
-        elif isinstance(scrap, (list, dict)):
-            encoder = "json"
-        else:
-            # This may be more complex in the future
-            encoder = "json"
+        encoder = determine_encoder(scrap)
 
     # TODO: default to 'display' encoder when encoder is None and object is a display object type?
     if display is None:

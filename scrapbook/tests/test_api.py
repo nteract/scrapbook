@@ -4,12 +4,13 @@ import six
 import mock
 import pytest
 import collections
+import pandas as pd
 
 from IPython.display import Image
 
 from . import get_fixture_path
 from .. import utils
-from ..api import glue
+from ..api import glue, determine_encoder
 from ..schemas import GLUE_PAYLOAD_FMT
 
 
@@ -212,3 +213,38 @@ def test_glue_warning(kernel_mock):
     kernel_mock.return_value = False
     with pytest.warns(UserWarning):
         glue('foo', 'bar', 'text')
+
+
+@pytest.mark.parametrize(
+    "scrap,expected_encoder",
+    [
+        (
+            "foo,bar,baz",
+            "text"
+        ),
+        (
+            Image(filename=get_fixture_path("tiny.png")),
+            "display"
+        ),
+        (
+            ['foo', 'bar'],
+            "json"
+        ),
+        (
+            {'foo': 'bar'},
+            "json"
+        ),
+        (
+            pd.DataFrame(data=
+                {"foo": pd.Series(["bar"], dtype='str')}),
+            "pandas"
+        ),
+        # Falls back to json for anything else
+        (
+            mock.Mock(),
+            "json"
+        ),
+    ],
+)
+def test_determine_encoder(scrap, expected_encoder):
+    assert determine_encoder(scrap) == expected_encoder

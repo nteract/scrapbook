@@ -1,5 +1,4 @@
 pandas
-six
 papermill
 jsonschema
 ipython
