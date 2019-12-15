@@ -6,7 +6,11 @@ Provides the encoders for various data types to be persistable
 """
 import six
 import json
+import base64
 import collections
+import pandas as pd
+
+from io import BytesIO
 
 from .scraps import scrap_to_payload
 from .exceptions import ScrapbookException, ScrapbookMissingEncoder
@@ -150,15 +154,27 @@ class TextEncoder(object):
         return scrap
 
 
-class ArrowDataframeEncoder(object):
+class PandasArrowDataframeEncoder(object):
+    def encodable(self, scrap):
+        return isinstance(scrap.data, pd.DataFrame)
+
     def encode(self, scrap, **kwargs):
-        raise NotImplementedError("Implement eventually")
+        scrap_bytes = BytesIO()
+        scrap.data.to_parquet(scrap_bytes, engine="pyarrow", **kwargs)
+        scrap_bytes.seek(0)
+        return scrap._replace(
+            data=base64.b64encode(scrap_bytes.getvalue()).decode())
 
     def decode(self, scrap, **kwargs):
-        raise NotImplementedError("Implement eventually")
+        scrap_bytes = BytesIO(base64.b64decode(scrap.data))
+        scrap_bytes.seek(0)
+        return scrap._replace(
+            data=pd.read_parquet(scrap_bytes,
+                engine="pyarrow",
+                **kwargs))
 
 
 registry = DataEncoderRegistry()
 registry.register("text", TextEncoder())
 registry.register("json", JsonEncoder())
-# registry.register('arrow', ArrowDataframeEncoder())
+registry.register('pandas', PandasArrowDataframeEncoder())

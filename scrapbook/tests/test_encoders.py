@@ -2,8 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+import base64
+import pandas as pd
 
-from ..encoders import DataEncoderRegistry, JsonEncoder, TextEncoder
+from io import BytesIO
+
+from ..encoders import (
+    DataEncoderRegistry,
+    JsonEncoder,
+    TextEncoder,
+    PandasArrowDataframeEncoder,
+)
 from ..exceptions import (
     ScrapbookException,
     ScrapbookDataException,
@@ -170,6 +179,34 @@ def test_text_decode(test_input, expected):
 )
 def test_text_encode(test_input, expected):
     assert TextEncoder().encode(test_input) == expected
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        (
+            Scrap(name="foo", data=pd.DataFrame(data=
+                {"foo": pd.Series(["bar"], dtype='str'), "baz": pd.Series([1], dtype='int')}),
+                encoder="pandas")
+        ),
+        (
+            Scrap(name="foo", data=pd.DataFrame(
+                data={
+                    "foo": pd.Series(["😍", "emoji"], dtype='str'),
+                    "baz": pd.Series(["no", "unicode"], dtype='str')
+                }),
+                encoder="pandas")
+        ),
+    ],
+)
+def test_pandas_encode_and_decode(test_input):
+    scrap = PandasArrowDataframeEncoder().encode(test_input)
+    scrap_back = PandasArrowDataframeEncoder().decode(scrap)
+    pd.testing.assert_frame_equal(scrap_back.data, test_input.data)
+    assert scrap.name == test_input.name
+    assert scrap_back.name == test_input.name
+    assert scrap.encoder == test_input.encoder
+    assert scrap_back.encoder == test_input.encoder
 
 
 @pytest.fixture
