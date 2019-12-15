@@ -95,21 +95,21 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
         (
             "foobarbaz",
             "foo,bar,baz",
-            {u"text/plain": u"'foo,bar,baz'"},
+            {"text/plain": "'foo,bar,baz'"},
             "display",  # Prevent data saves
-            {u"scrapbook": {u"name": u"foobarbaz", "data": False, "display": True}},
+            {"scrapbook": {"name": "foobarbaz", "data": False, "display": True}},
             None,  # This should default into True
         ),
         (
             "tinypng",
             Image(filename=get_fixture_path("tiny.png")),
             {
-                u"image/png": (
+                "image/png": (
                     "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gwRBREo2qqE0wAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAFklEQVQI12P8//8/AwMDEwMDAwMDAwAkBgMBvR7jugAAAABJRU5ErkJggg==\n"  # noqa: E501
                     if six.PY3
                     else "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x02\x00\x00\x00\x02\x08\x02\x00\x00\x00\xfd\xd4\x9as\x00\x00\x00\tpHYs\x00\x00\x0b\x13\x00\x00\x0b\x13\x01\x00\x9a\x9c\x18\x00\x00\x00\x07tIME\x07\xe2\x0c\x11\x05\x11(\xda\xaa\x84\xd3\x00\x00\x00\x1diTXtComment\x00\x00\x00\x00\x00Created with GIMPd.e\x07\x00\x00\x00\x16IDAT\x08\xd7c\xfc\xff\xff?\x03\x03\x03\x13\x03\x03\x03\x03\x03\x03\x00$\x06\x03\x01\xbd\x1e\xe3\xba\x00\x00\x00\x00IEND\xaeB`\x82"  # noqa: E501
                 ),
-                u"text/plain": u"<IPython.core.display.Image object>",
+                "text/plain": "<IPython.core.display.Image object>",
             },
             "display",  # Prevent data saves
             {"scrapbook": {"name": "tinypng", "data": False, "display": True}},
@@ -118,7 +118,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
         (
             "tinypng",
             Image(filename=get_fixture_path("tiny.png")),
-            {u"text/plain": u"<IPython.core.display.Image object>"},
+            {"text/plain": "<IPython.core.display.Image object>"},
             "display",  # Prevent data saves
             {"scrapbook": {"name": "tinypng", "data": False, "display": True}},
             ("text/plain",),  # Pick content of display
@@ -126,7 +126,7 @@ def test_glue(mock_display, name, scrap, encoder, data, metadata):
         (
             "tinypng",
             Image(filename=get_fixture_path("tiny.png")),
-            {u"text/plain": u"<IPython.core.display.Image object>"},
+            {"text/plain": "<IPython.core.display.Image object>"},
             "display",  # Prevent data saves
             {"scrapbook": {"name": "tinypng", "data": False, "display": True}},
             {"exclude": "image/png"},  # Exclude content of display
@@ -161,10 +161,10 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
                     "version": 1,
                 }
             },
-            {u"text/plain": u"'foo,bar,baz'"},
+            {"text/plain": "'foo,bar,baz'"},
             None,  # Save data as default
-            {u"scrapbook": {u"name": u"foobarbaz", "data": True, "display": False}},
-            {u"scrapbook": {u"name": u"foobarbaz", "data": False, "display": True}},
+            {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
+            {"scrapbook": {"name": "foobarbaz", "data": False, "display": True}},
             True,  # Indicate display should also be available
         ),
         (
@@ -178,10 +178,10 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
                     "version": 1,
                 }
             },
-            {u"text/plain": u"['foo', 'bar', 'baz']"},
+            {"text/plain": "['foo', 'bar', 'baz']"},
             "json",  # Save data as json
-            {u"scrapbook": {u"name": u"foobarbaz", "data": True, "display": False}},
-            {u"scrapbook": {u"name": u"foobarbaz", "data": False, "display": True}},
+            {"scrapbook": {"name": "foobarbaz", "data": True, "display": False}},
+            {"scrapbook": {"name": "foobarbaz", "data": False, "display": True}},
             True,  # Indicate display should also be available
         ),
     ],

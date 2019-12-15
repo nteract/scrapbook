@@ -38,7 +38,7 @@ except ImportError:
         ),
         (
             Scrap(name="foo", data=u'["😍"]', encoder="json"),
-            Scrap(name="foo", data=[u"😍"], encoder="json"),
+            Scrap(name="foo", data=["😍"], encoder="json"),
         ),
     ],
 )
@@ -51,7 +51,7 @@ def test_json_decode(test_input, expected):
     [
         Scrap(name="foo", data="", encoder="json"),
         Scrap(name="foo", data='{"inavlid","json"}', encoder="json"),
-        Scrap(name="foo", data=u"😍", encoder="json"),
+        Scrap(name="foo", data="😍", encoder="json"),
     ],
 )
 def test_json_decode_failures(test_input):
@@ -80,7 +80,7 @@ def test_json_decode_failures(test_input):
         ),
         (
             Scrap(name="foo", data=u'["😍"]', encoder="json"),
-            Scrap(name="foo", data=[u"😍"], encoder="json"),
+            Scrap(name="foo", data=["😍"], encoder="json"),
         ),
     ],
 )
@@ -93,7 +93,7 @@ def test_json_encode(test_input, expected):
     [
         Scrap(name="foo", data="", encoder="json"),
         Scrap(name="foo", data='{"inavlid","json"}', encoder="json"),
-        Scrap(name="foo", data=u"😍", encoder="json"),
+        Scrap(name="foo", data="😍", encoder="json"),
     ],
 )
 def test_json_encode_failures(test_input):
@@ -130,8 +130,8 @@ class Dummy(object):
             Scrap(name="foo", data="foo", encoder="text"),
         ),
         (
-            Scrap(name="foo", data=u"😍", encoder="text"),
-            Scrap(name="foo", data=u"😍", encoder="text"),
+            Scrap(name="foo", data="😍", encoder="text"),
+            Scrap(name="foo", data="😍", encoder="text"),
         ),
     ],
 )
@@ -163,8 +163,8 @@ def test_text_decode(test_input, expected):
             Scrap(name="foo", data="foo", encoder="text"),
         ),
         (
-            Scrap(name="foo", data=u"😍", encoder="text"),
-            Scrap(name="foo", data=u"😍", encoder="text"),
+            Scrap(name="foo", data="😍", encoder="text"),
+            Scrap(name="foo", data="😍", encoder="text"),
         ),
     ],
 )
