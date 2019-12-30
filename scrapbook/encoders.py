@@ -11,19 +11,16 @@ import collections
 import pandas as pd
 
 from io import BytesIO
+from json import JSONDecodeError
+from collections import OrderedDict
 
 from .scraps import scrap_to_payload
-from .exceptions import ScrapbookException, ScrapbookMissingEncoder
-
-try:
-    from json import JSONDecodeError  # Py 3
-except ImportError:
-    JSONDecodeError = ValueError  # Py 2
+from .exceptions import ScrapbookException, ScrapbookInvalidEncoder, ScrapbookMissingEncoder
 
 
 class DataEncoderRegistry(collections.MutableMapping):
     def __init__(self):
-        self._encoders = {}
+        self._encoders = OrderedDict()
 
     def __getitem__(self, key):
         return self._encoders.__getitem__(key)
@@ -49,7 +46,7 @@ class DataEncoderRegistry(collections.MutableMapping):
     def __len__(self):
         return self._encoders.__len__()
 
-    def register(self, name, encoder):
+    def register(self, encoder):
         """
         Registers a new name to a particular encoder
 
@@ -60,10 +57,12 @@ class DataEncoderRegistry(collections.MutableMapping):
         encoder: obj
             The object which implements the required encoding functions.
         """
-        # TODO: Make the translators specify what types they can store?
-        self[name] = encoder
+        try:
+            self[encoder.name()] = encoder
+        except AttributeError:
+            raise ScrapbookInvalidEncoder("Encoder has no `name` method available")
 
-    def deregister(self, name):
+    def deregister(self, encoder):
         """
         Removes a particular encoder from the registry
 
@@ -72,13 +71,27 @@ class DataEncoderRegistry(collections.MutableMapping):
         name: str
             Name of the mime subtype parsed by the encoder.
         """
-        del self[name]
+        try:
+            del self[encoder.name()]
+        except AttributeError:
+            del self[encoder]
 
     def reset(self):
         """
         Resets the registry to have no encoders.
         """
         self._encoders = {}
+
+    def determine_encoder_name(self, data):
+        """
+        Determines the
+        """
+        for name, encoder in self._encoders.items():
+            if encoder.encodable(data):
+                return name
+        raise NotImplementedError(
+            "Scrap of type {stype} has no supported encoder registered".format(stype=type(data))
+        )
 
     def decode(self, scrap, **kwargs):
         """
@@ -112,9 +125,7 @@ class DataEncoderRegistry(collections.MutableMapping):
         encoder = self._encoders.get(scrap.encoder)
         if not encoder:
             raise ScrapbookMissingEncoder(
-                'No encoder found for "{data_type}" data type!'.format(
-                    data_type=encoder
-                )
+                'No encoder found for "{data_type}" data type!'.format(data_type=encoder)
             )
         output_scrap = encoder.encode(scrap, **kwargs)
         # Run validation on encoded data
@@ -123,6 +134,14 @@ class DataEncoderRegistry(collections.MutableMapping):
 
 
 class JsonEncoder(object):
+    ENCODER_NAME = 'json'
+
+    def name(self):
+        return self.ENCODER_NAME
+
+    def encodable(self, data):
+        return isinstance(data, (list, dict))
+
     def encode(self, scrap, **kwargs):
         if isinstance(scrap.data, six.string_types):
             scrap = scrap._replace(data=json.loads(scrap.data))
@@ -140,6 +159,14 @@ class JsonEncoder(object):
 
 
 class TextEncoder(object):
+    ENCODER_NAME = 'text'
+
+    def name(self):
+        return self.ENCODER_NAME
+
+    def encodable(self, data):
+        return isinstance(data, str)
+
     def encode(self, scrap, **kwargs):
         if not isinstance(scrap.data, six.string_types):
             # TODO: set encoder information to save as encoding
@@ -154,27 +181,48 @@ class TextEncoder(object):
         return scrap
 
 
+class DisplayEncoder(object):
+    ENCODER_NAME = 'display'
+
+    def name(self):
+        return self.ENCODER_NAME
+
+    def encodable(self, data):
+        from IPython.display import DisplayObject
+
+        return isinstance(data, DisplayObject)
+
+    def encode(self, scrap, **kwargs):
+        raise NotImplementedError("This code path should not be reached")
+
+    def decode(self, scrap, **kwargs):
+        raise NotImplementedError("This code path should not be reached")
+
+
 class PandasArrowDataframeEncoder(object):
-    def encodable(self, scrap):
-        return isinstance(scrap.data, pd.DataFrame)
+    ENCODER_NAME = 'pandas'
+
+    def name(self):
+        return self.ENCODER_NAME
+
+    def encodable(self, data):
+        return isinstance(data, pd.DataFrame)
 
     def encode(self, scrap, **kwargs):
         scrap_bytes = BytesIO()
         scrap.data.to_parquet(scrap_bytes, engine="pyarrow", **kwargs)
         scrap_bytes.seek(0)
-        return scrap._replace(
-            data=base64.b64encode(scrap_bytes.getvalue()).decode())
+        return scrap._replace(data=base64.b64encode(scrap_bytes.getvalue()).decode())
 
     def decode(self, scrap, **kwargs):
         scrap_bytes = BytesIO(base64.b64decode(scrap.data))
         scrap_bytes.seek(0)
-        return scrap._replace(
-            data=pd.read_parquet(scrap_bytes,
-                engine="pyarrow",
-                **kwargs))
+        return scrap._replace(data=pd.read_parquet(scrap_bytes, engine="pyarrow", **kwargs))
 
 
 registry = DataEncoderRegistry()
-registry.register("text", TextEncoder())
-registry.register("json", JsonEncoder())
-registry.register('pandas', PandasArrowDataframeEncoder())
+# Ordering here matters!
+registry.register(TextEncoder())
+registry.register(JsonEncoder())
+registry.register(DisplayEncoder())
+registry.register(PandasArrowDataframeEncoder())

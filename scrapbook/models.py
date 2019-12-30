@@ -55,9 +55,7 @@ class Notebook(object):
             path = urlparse(node_or_path).path
             if not os.path.splitext(path)[-1].endswith('ipynb'):
                 raise Warning(
-                    "Requires an '.ipynb' file extension. Provided path: '{}'".format(
-                        node_or_path
-                    )
+                    "Requires an '.ipynb' file extension. Provided path: '{}'".format(node_or_path)
                 )
             self.path = node_or_path
             self.node = nbformat.reads(papermill_io.read(node_or_path), as_version=4)
@@ -254,9 +252,7 @@ class Notebook(object):
     def papermill_dataframe(self):
         """pandas dataframe: dataframe of notebook parameters and cell scraps"""
         # Meant for backwards compatibility to papermill's dataframe method
-        return self.parameter_dataframe.append(
-            self.papermill_record_dataframe, ignore_index=True
-        )
+        return self.parameter_dataframe.append(self.papermill_record_dataframe, ignore_index=True)
 
     def _strip_scrapbook_metadata(self, metadata):
         copied = copy.copy(metadata)
@@ -291,9 +287,7 @@ class Notebook(object):
                     "Scrap '{}' is not available in this notebook.".format(name)
                 )
             else:
-                ip_display(
-                    "No scrap found with name '{}' in this notebook".format(name)
-                )
+                ip_display("No scrap found with name '{}' in this notebook".format(name))
         else:
             scrap = self.scraps[name]
             if new_name:
@@ -309,12 +303,8 @@ class Notebook(object):
                 ip_display(data, metadata=metadata, raw=True)
             if scrap.display is not None:
                 scrap_data = scrap.display.get("data", {})
-                scrap_metadata = self._strip_scrapbook_metadata(
-                    scrap.display.get("metadata", {})
-                )
-                data, metadata = _prepare_ipy_display_format(
-                    scrap.name, scrap_data, scrap_metadata
-                )
+                scrap_metadata = self._strip_scrapbook_metadata(scrap.display.get("metadata", {}))
+                data, metadata = _prepare_ipy_display_format(scrap.name, scrap_data, scrap_metadata)
                 if unattached:
                     # Remove 'scrapbook' from keys if we want it unassociated
                     metadata = self._strip_scrapbook_metadata(metadata)
@@ -449,6 +439,4 @@ class Scrapbook(collections.MutableMapping):
                             ip_display(Markdown("#### {}".format(name)))
                             ip_display(trim_repr(scrap.data))
                         else:
-                            ip_display(
-                                "{}: {}".format(scrap.name, trim_repr(scrap.data))
-                            )
+                            ip_display("{}: {}".format(scrap.name, trim_repr(scrap.data)))

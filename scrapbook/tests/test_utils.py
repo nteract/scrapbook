@@ -7,8 +7,9 @@ from ..utils import is_kernel
 
 
 def test_is_kernel_true():
-    class FakeIPyKernel():
+    class FakeIPyKernel:
         kernel = True
+
     sys.modules['IPython'] = MagicMock()
     sys.modules['IPython'].get_ipython.return_value = FakeIPyKernel
     assert is_kernel()

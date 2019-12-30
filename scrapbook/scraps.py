@@ -45,9 +45,7 @@ def payload_to_scrap(payload):
     if "version" not in payload:
         raise ScrapbookDataException(
             "Scrap payload (name={}) has no version indicator. "
-            "This scrap is invalid and cannot be loaded".format(
-                payload.get("name", "None")
-            )
+            "This scrap is invalid and cannot be loaded".format(payload.get("name", "None"))
         )
     if payload["version"] > LATEST_SCRAP_VERSION:
         logger.warning(
@@ -63,18 +61,12 @@ def payload_to_scrap(payload):
         except ValidationError as e:
             raise ScrapbookDataException(
                 "Scrap payload (name={name}) contents do not conform to required "
-                "type structures: {error}".format(
-                    name=payload.get("name", "None"), error=str(e)
-                ),
+                "type structures: {error}".format(name=payload.get("name", "None"), error=str(e)),
                 [e],
             )
     # If future schema versions would require further manipulation
     # then implement various version loaders here
-    return Scrap(
-        name=payload.get("name"),
-        data=payload.get("data"),
-        encoder=payload.get("encoder"),
-    )
+    return Scrap(name=payload.get("name"), data=payload.get("data"), encoder=payload.get("encoder"))
 
 
 class Scraps(OrderedDict):
@@ -101,9 +93,6 @@ class Scraps(OrderedDict):
     def dataframe(self):
         """pandas dataframe: dataframe of cell scraps"""
         return pd.DataFrame(
-            [
-                [scrap.name, scrap.data, scrap.encoder, scrap.display]
-                for scrap in self.values()
-            ],
+            [[scrap.name, scrap.data, scrap.encoder, scrap.display] for scrap in self.values()],
             columns=["name", "data", "encoder", "display"],
         )

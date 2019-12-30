@@ -58,13 +58,9 @@ def test_bad_ext():
 @mock.patch("papermill.iorw.papermill_io.read")
 def test_good_ext_for_url(mock_read):
     sample_output = {
-        "cells": [{
-            "cell_type": "code",
-            "execution_count": 1,
-            "metadata": {},
-            "outputs": [],
-            "source": []
-        }]
+        "cells": [
+            {"cell_type": "code", "execution_count": 1, "metadata": {}, "outputs": [], "source": []}
+        ]
     }
 
     mock_read.return_value = json.dumps(sample_output)
@@ -109,20 +105,12 @@ def test_display_scraps(notebook_result):
     assert notebook_result.scraps.display_dict == {
         "output": {
             "data": {"text/plain": "'Hello World!'"},
-            "metadata": {
-                "scrapbook": {
-                    "name": "output",
-                    "data": False,
-                    "display": True,
-                }
-            },
+            "metadata": {"scrapbook": {"name": "output", "data": False, "display": True}},
             "output_type": "display_data",
         },
         "one_only": {
             "data": {"text/plain": "'Just here!'"},
-            "metadata": {
-                "scrapbook": {"name": "one_only", "data": False, "display": True}
-            },
+            "metadata": {"scrapbook": {"name": "one_only", "data": False, "display": True}},
             "output_type": "display_data",
         },
     }
@@ -188,9 +176,7 @@ def test_reglue_scrap(mock_display, notebook_result):
 @mock.patch("IPython.display.display")
 def test_reglue_display_unattached(mock_display, notebook_result):
     notebook_result.reglue("output", unattached=True)
-    mock_display.assert_called_once_with(
-        {"text/plain": "'Hello World!'"}, metadata={}, raw=True
-    )
+    mock_display.assert_called_once_with({"text/plain": "'Hello World!'"}, metadata={}, raw=True)
 
 
 @mock.patch("IPython.display.display")
@@ -218,9 +204,7 @@ def test_missing_reglue(notebook_result):
 @mock.patch("IPython.display.display")
 def test_missing_reglue_no_error(mock_display, notebook_result):
     notebook_result.reglue("foo", raise_on_missing=False)
-    mock_display.assert_called_once_with(
-        "No scrap found with name 'foo' in this notebook"
-    )
+    mock_display.assert_called_once_with("No scrap found with name 'foo' in this notebook")
 
 
 @mock.patch("IPython.display.display")
