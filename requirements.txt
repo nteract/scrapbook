@@ -2,3 +2,4 @@ pandas
 papermill
 jsonschema
 ipython
+pyarrow
