@@ -75,7 +75,7 @@ simply call:
 
 .. code:: python
 
-    from encoder import registry as encoder_registry
+    from scrapbook.encoders import registry as encoder_registry
     # add encoder to the registry
     encoder_registry.register("custom_encoder_name", MyCustomEncoder())
 
