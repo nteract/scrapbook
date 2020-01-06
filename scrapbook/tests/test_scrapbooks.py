@@ -37,9 +37,7 @@ def notebook_collection():
 
 
 def test_assign_from_path(notebook_collection):
-    notebook_collection["result_no_exec.ipynb"] = get_notebook_path(
-        "result_no_exec.ipynb"
-    )
+    notebook_collection["result_no_exec.ipynb"] = get_notebook_path("result_no_exec.ipynb")
 
 
 def test_notebook_scraps(notebook_collection):
@@ -49,31 +47,12 @@ def test_notebook_scraps(notebook_collection):
                 "result1",
                 Scraps(
                     [
-                        (
-                            "one",
-                            Scrap(name="one", data=1, encoder="json", display=None),
-                        ),
-                        (
-                            "number",
-                            Scrap(name="number", data=1, encoder="json", display=None),
-                        ),
-                        (
-                            "list",
-                            Scrap(
-                                name="list",
-                                data=[1, 2, 3],
-                                encoder="json",
-                                display=None,
-                            ),
-                        ),
+                        ("one", Scrap(name="one", data=1, encoder="json", display=None)),
+                        ("number", Scrap(name="number", data=1, encoder="json", display=None)),
+                        ("list", Scrap(name="list", data=[1, 2, 3], encoder="json", display=None)),
                         (
                             "dict",
-                            Scrap(
-                                name="dict",
-                                data={"a": 1, "b": 2},
-                                encoder="json",
-                                display=None,
-                            ),
+                            Scrap(name="dict", data={"a": 1, "b": 2}, encoder="json", display=None),
                         ),
                         (
                             "output",
@@ -120,31 +99,12 @@ def test_notebook_scraps(notebook_collection):
                 "result2",
                 Scraps(
                     [
-                        (
-                            "two",
-                            Scrap(name="two", data=2, encoder="json", display=None),
-                        ),
-                        (
-                            "number",
-                            Scrap(name="number", data=2, encoder="json", display=None),
-                        ),
-                        (
-                            "list",
-                            Scrap(
-                                name="list",
-                                data=[4, 5, 6],
-                                encoder="json",
-                                display=None,
-                            ),
-                        ),
+                        ("two", Scrap(name="two", data=2, encoder="json", display=None)),
+                        ("number", Scrap(name="number", data=2, encoder="json", display=None)),
+                        ("list", Scrap(name="list", data=[4, 5, 6], encoder="json", display=None)),
                         (
                             "dict",
-                            Scrap(
-                                name="dict",
-                                data={"a": 3, "b": 4},
-                                encoder="json",
-                                display=None,
-                            ),
+                            Scrap(name="dict", data={"a": 3, "b": 4}, encoder="json", display=None),
                         ),
                         (
                             "output",
@@ -197,10 +157,7 @@ def test_scraps(notebook_collection):
             ("one", Scrap(name="one", data=1, encoder="json", display=None)),
             ("number", Scrap(name="number", data=2, encoder="json", display=None)),
             ("list", Scrap(name="list", data=[4, 5, 6], encoder="json", display=None)),
-            (
-                "dict",
-                Scrap(name="dict", data={"a": 3, "b": 4}, encoder="json", display=None),
-            ),
+            ("dict", Scrap(name="dict", data={"a": 3, "b": 4}, encoder="json", display=None)),
             (
                 "output",
                 Scrap(
@@ -210,11 +167,7 @@ def test_scraps(notebook_collection):
                     display={
                         "data": {"text/plain": "'Hello World 2!'"},
                         "metadata": {
-                            "scrapbook": {
-                                "data": False,
-                                "display": True,
-                                "name": "output",
-                            }
+                            "scrapbook": {"data": False, "display": True, "name": "output"}
                         },
                         "output_type": "display_data",
                     },
@@ -229,11 +182,7 @@ def test_scraps(notebook_collection):
                     display={
                         "data": {"text/plain": "'Just here!'"},
                         "metadata": {
-                            "scrapbook": {
-                                "data": False,
-                                "display": True,
-                                "name": "one_only",
-                            }
+                            "scrapbook": {"data": False, "display": True, "name": "one_only"}
                         },
                         "output_type": "display_data",
                     },
@@ -249,11 +198,7 @@ def test_scraps(notebook_collection):
                     display={
                         "data": {"text/plain": "'Just here!'"},
                         "metadata": {
-                            "scrapbook": {
-                                "data": False,
-                                "display": True,
-                                "name": "two_only",
-                            }
+                            "scrapbook": {"data": False, "display": True, "name": "two_only"}
                         },
                         "output_type": "display_data",
                     },
@@ -376,17 +321,13 @@ def test_scraps_report_with_data_no_headers(mock_display, notebook_collection):
             mock.call("one: 1"),
             mock.call("number: 1"),
             mock.call("list: [1, 2, 3]"),
-            mock.call(
-                "dict: {'a': 1, 'b': 2}" if six.PY3 else "dict: {u'a': 1, u'b': 2}"
-            ),
+            mock.call("dict: {'a': 1, 'b': 2}" if six.PY3 else "dict: {u'a': 1, u'b': 2}"),
             mock.call({"text/plain": "'Hello World 2!'"}, metadata={}, raw=True),
             mock.call({"text/plain": "'Just here!'"}, metadata={}, raw=True),
             mock.call("two: 2"),
             mock.call("number: 2"),
             mock.call("list: [4, 5, 6]"),
-            mock.call(
-                "dict: {'a': 3, 'b': 4}" if six.PY3 else "dict: {u'a': 3, u'b': 4}"
-            ),
+            mock.call("dict: {'a': 3, 'b': 4}" if six.PY3 else "dict: {u'a': 3, u'b': 4}"),
         ]
     )
 
@@ -439,9 +380,7 @@ def test_scraps_report_with_notebook_names(mock_display, notebook_collection):
 
 @mock.patch("IPython.display.display")
 def test_scraps_report_with_scrap_and_notebook_names(mock_display, notebook_collection):
-    notebook_collection.scraps_report(
-        scrap_names=["output"], notebook_names=["result1"]
-    )
+    notebook_collection.scraps_report(scrap_names=["output"], notebook_names=["result1"])
     mock_display.assert_has_calls(
         [
             mock.call(AnyMarkdownWith("### result1")),

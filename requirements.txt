@@ -1,5 +1,5 @@
 pandas
-six
 papermill
 jsonschema
 ipython
+pyarrow

@@ -4,10 +4,7 @@ api.py
 
 Provides the base API calls for scrapbook
 """
-from __future__ import unicode_literals
 import os
-
-from six import string_types
 
 # We lean on papermill's readers to connect to remote stores
 from papermill.iorw import list_notebook_files
@@ -20,11 +17,11 @@ from .utils import kernel_required
 
 
 @kernel_required
-def glue(name, scrap, encoder=None, display=None):
+def glue(name, data, encoder=None, display=None):
     """
-    Records a scrap (data value) in the given notebook cell.
+    Records a data value in the given notebook cell.
 
-    The scrap (recorded value) can be retrieved during later inspection of the
+    The recorded data value can be retrieved during later inspection of the
     output notebook.
 
     The data type of the scraps is implied by the value type of any of the
@@ -56,8 +53,9 @@ def glue(name, scrap, encoder=None, display=None):
     ----------
     name: str
         Name of the value to record.
-    scrap: any
-        The value to record.
+    data: any
+        The value to record. This must be an object for which an encoder's
+        `encodable` method returns True.
     encoder: str (optional)
         The name of the handler to use in persisting data in the notebook.
     display: any (optional)
@@ -68,30 +66,18 @@ def glue(name, scrap, encoder=None, display=None):
     from IPython.display import display as ip_display
 
     # TODO: Implement the cool stuff. Remote storage indicators?!? Maybe remote media type?!?
-    # TODO: Make this more modular
-    # TODO: Use translators to determine best storage type
-    # ...
     if not encoder:
-        if isinstance(scrap, string_types):
-            encoder = "text"
-        elif isinstance(scrap, (list, dict)):
-            encoder = "json"
-        else:
-            # This may be more complex in the future
-            encoder = "json"
+        encoder = encoder_registry.determine_encoder_name(data)
 
-    # TODO: default to 'display' encoder when encoder is None and object is a display object type?
     if display is None:
         display = encoder == "display"
 
     # Only store data that can be stored (purely display scraps can skip)
     if encoder != "display":
-        data, metadata = _prepare_ipy_data_format(
-            name,
-            scrap_to_payload(encoder_registry.encode(Scrap(name, scrap, encoder))),
-            encoder,
+        ipy_data, metadata = _prepare_ipy_data_format(
+            name, scrap_to_payload(encoder_registry.encode(Scrap(name, data, encoder))), encoder
         )
-        ip_display(data, metadata=metadata, raw=True)
+        ip_display(ipy_data, metadata=metadata, raw=True)
 
     # Only display data that is marked for display
     if display:
@@ -100,9 +86,7 @@ def glue(name, scrap, encoder=None, display=None):
             display_kwargs = {"include": display}
         elif isinstance(display, dict):
             display_kwargs = display
-        raw_data, raw_metadata = IPython.core.formatters.format_display_data(
-            scrap, **display_kwargs
-        )
+        raw_data, raw_metadata = IPython.core.formatters.format_display_data(data, **display_kwargs)
         data, metadata = _prepare_ipy_display_format(name, raw_data, raw_metadata)
         ip_display(data, metadata=metadata, raw=True)
 

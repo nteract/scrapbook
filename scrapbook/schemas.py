@@ -21,12 +21,8 @@ RECORD_PAYLOAD_PREFIX = "application/papermill.record"
 JSON_FILE_VERSION_REGEX = r".*scrap\.v([0-9]+)\.json"
 SCHEMAS = {
     int(re.search(JSON_FILE_VERSION_REGEX, fname).group(1)): _load_schema(fname)
-    for fname in glob.glob(
-        os.path.join(os.path.dirname(__file__), "schemas/scrap.v*.json")
-    )
-    if re.match(
-        JSON_FILE_VERSION_REGEX, fname
-    )  # Since glob can't perfectly match the regex
+    for fname in glob.glob(os.path.join(os.path.dirname(__file__), "schemas/scrap.v*.json"))
+    if re.match(JSON_FILE_VERSION_REGEX, fname)  # Since glob can't perfectly match the regex
 }
 # Update for any new json payloads and schemas/scrap.v*.json
 LATEST_SCRAP_VERSION = 1

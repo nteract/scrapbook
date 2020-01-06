@@ -18,6 +18,8 @@ matrix:
     #   env: TOXENV=docs
     - python: 3.6
       env: TOXENV=manifest
+  allow_failures:
+    - python: 3.8
 install:
   - pip install tox
   - pip install coverage codecov

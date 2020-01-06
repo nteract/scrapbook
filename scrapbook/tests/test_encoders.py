@@ -2,11 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+import mock
+import pyarrow
+import pandas as pd
 
-from ..encoders import DataEncoderRegistry, JsonEncoder, TextEncoder
+from IPython.display import Image
+
+from . import get_fixture_path
+from ..encoders import (
+    registry as full_registry,
+    DataEncoderRegistry,
+    JsonEncoder,
+    TextEncoder,
+    PandasArrowDataframeEncoder,
+)
 from ..exceptions import (
-    ScrapbookException,
     ScrapbookDataException,
+    ScrapbookInvalidEncoder,
     ScrapbookMissingEncoder,
 )
 from ..scraps import Scrap
@@ -129,10 +141,7 @@ class Dummy(object):
             Scrap(name="foo", data=Dummy(), encoder="text"),
             Scrap(name="foo", data="foo", encoder="text"),
         ),
-        (
-            Scrap(name="foo", data="😍", encoder="text"),
-            Scrap(name="foo", data="😍", encoder="text"),
-        ),
+        (Scrap(name="foo", data="😍", encoder="text"), Scrap(name="foo", data="😍", encoder="text")),
     ],
 )
 def test_text_decode(test_input, expected):
@@ -162,35 +171,120 @@ def test_text_decode(test_input, expected):
             Scrap(name="foo", data=Dummy(), encoder="text"),
             Scrap(name="foo", data="foo", encoder="text"),
         ),
-        (
-            Scrap(name="foo", data="😍", encoder="text"),
-            Scrap(name="foo", data="😍", encoder="text"),
-        ),
+        (Scrap(name="foo", data="😍", encoder="text"), Scrap(name="foo", data="😍", encoder="text")),
     ],
 )
 def test_text_encode(test_input, expected):
     assert TextEncoder().encode(test_input) == expected
 
 
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        (
+            Scrap(
+                name="foo",
+                data=pd.DataFrame(
+                    data={
+                        "foo": pd.Series(["bar"], dtype='str'),
+                        "baz": pd.Series([1], dtype='int'),
+                    }
+                ),
+                encoder="pandas",
+            )
+        ),
+        (
+            Scrap(
+                name="foo",
+                data=pd.DataFrame(
+                    data={
+                        "foo": pd.Series(["😍", "emoji"], dtype='str'),
+                        "baz": pd.Series(["no", "unicode"], dtype='str'),
+                    }
+                ),
+                encoder="pandas",
+            )
+        ),
+        # Nested lists of lists of strings are ok
+        (
+            Scrap(
+                name="foo",
+                data=pd.DataFrame(data={"foo": pd.Series([[["foo", "bar"]]], dtype='object')}),
+                encoder="pandas",
+            )
+        ),
+        # String objects are ok
+        (
+            Scrap(
+                name="foo",
+                data=pd.DataFrame(data={"foo": pd.Series(["bar"], dtype='object')}),
+                encoder="pandas",
+            )
+        ),
+    ],
+)
+def test_pandas_encode_and_decode(test_input):
+    scrap = PandasArrowDataframeEncoder().encode(test_input)
+    scrap_back = PandasArrowDataframeEncoder().decode(scrap)
+    pd.testing.assert_frame_equal(scrap_back.data, test_input.data)
+    assert scrap.name == test_input.name
+    assert scrap_back.name == test_input.name
+    assert scrap.encoder == test_input.encoder
+    assert scrap_back.encoder == test_input.encoder
+
+
+@pytest.mark.parametrize(
+    "test_input,exception_type",
+    [
+        # Dicts can't convert
+        (
+            Scrap(
+                name="foo",
+                data=pd.DataFrame(data={"foo": pd.Series([{"foo": "bar"}], dtype='object')}),
+                encoder="pandas",
+            ),
+            pyarrow.lib.ArrowNotImplementedError,
+        ),
+        # Sets can't convert
+        (
+            Scrap(
+                name="foo",
+                data=pd.DataFrame(data={"foo": pd.Series([{"foo", "bar"}], dtype='object')}),
+                encoder="pandas",
+            ),
+            pyarrow.lib.ArrowInvalid,
+        ),
+    ],
+)
+def test_unsupported_arrow_conversions(test_input, exception_type):
+    with pytest.raises(exception_type):
+        PandasArrowDataframeEncoder().encode(test_input)
+
+
 @pytest.fixture
 def registry():
     registry = DataEncoderRegistry()
-    registry.register("json", JsonEncoder())
+    registry.register(JsonEncoder())
     return registry
 
 
 def test_registry_register(registry):
-    registry.register("text", TextEncoder())
+    registry.register(TextEncoder())
     assert "text" in registry
 
 
 def test_registry_invalid_register(registry):
-    with pytest.raises(ScrapbookException):
-        registry.register("text", "not an encoder")
+    with pytest.raises(ScrapbookInvalidEncoder):
+        registry.register("not an encoder")
 
 
 def test_registry_deregister(registry):
     registry.deregister("json")
+    assert "json" not in registry
+
+
+def test_registry_deregister(registry):
+    registry.deregister(JsonEncoder())
     assert "json" not in registry
 
 
@@ -200,7 +294,7 @@ def test_registry_missing_deregister(registry):
 
 
 def test_registry_reset(registry):
-    registry.register("text", TextEncoder())
+    registry.register(TextEncoder())
     registry.reset()
     assert "json" not in registry
     assert "text" not in registry
@@ -209,16 +303,16 @@ def test_registry_reset(registry):
 
 def test_decode(registry):
     # Test that it can select and execute the qualified encoder
-    assert registry.decode(
-        Scrap(name="foo", encoder="json", data='["foobar"]')
-    ) == Scrap(name="foo", encoder="json", data=["foobar"])
+    assert registry.decode(Scrap(name="foo", encoder="json", data='["foobar"]')) == Scrap(
+        name="foo", encoder="json", data=["foobar"]
+    )
 
 
 def test_encode(registry):
     # Test that it can select and execute the qualified encoder
-    assert registry.encode(
-        Scrap(name="foo", encoder="json", data='["foobar"]')
-    ) == Scrap(name="foo", encoder="json", data=["foobar"])
+    assert registry.encode(Scrap(name="foo", encoder="json", data='["foobar"]')) == Scrap(
+        name="foo", encoder="json", data=["foobar"]
+    )
 
 
 class BadData(object):
@@ -226,6 +320,9 @@ class BadData(object):
 
 
 class BadEncoder(object):
+    def name(self):
+        return "bad"
+
     def decode(self, scrap, **kwargs):
         return Scrap(scrap.name, data=BadData(), encoder="bad")
 
@@ -234,13 +331,13 @@ class BadEncoder(object):
 
 
 def test_bad_decode(registry):
-    registry.register("bad", BadEncoder())
+    registry.register(BadEncoder())
     with pytest.raises(ScrapbookDataException):
         registry.decode(Scrap(name="foo", data=BadData(), encoder="bad"))
 
 
 def test_bad_encode(registry):
-    registry.register("bad", BadEncoder())
+    registry.register(BadEncoder())
     with pytest.raises(ScrapbookDataException):
         registry.encode(Scrap(name="foo", data="", encoder="bad"))
 
@@ -253,3 +350,23 @@ def test_missing_decode(registry):
 def test_missing_encode(registry):
     with pytest.raises(ScrapbookMissingEncoder):
         registry.encode(Scrap(name="foo", data="bar", encoder="missing"))
+
+
+@pytest.mark.parametrize(
+    "data,expected_encoder",
+    [
+        ("foo,bar,baz", "text"),
+        (Image(filename=get_fixture_path("tiny.png")), "display"),
+        (['foo', 'bar'], "json"),
+        ({'foo': 'bar'}, "json"),
+        (pd.DataFrame(data={"foo": pd.Series(["bar"], dtype='str')}), "pandas"),
+    ],
+)
+def test_determine_encoder_name(data, expected_encoder):
+    assert full_registry.determine_encoder_name(data) == expected_encoder
+
+
+@pytest.mark.parametrize("data", [mock.Mock(), object(), TextEncoder()])
+def test_determine_encoder_name_fails(data):
+    with pytest.raises(NotImplementedError):
+        full_registry.determine_encoder_name(data)

@@ -61,7 +61,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/nteract/scrapbook",
     packages=["scrapbook"],
-    python_requires = '>=3.5',
+    python_requires='>=3.5',
     include_package_data=True,
     install_requires=read_reqs("requirements.txt"),
     extras_require=extras_require,
