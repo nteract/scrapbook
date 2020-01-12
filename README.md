@@ -15,6 +15,9 @@
 THE **scrapbook** library records a notebook’s data values and generated visual
 content as "scraps". Recorded scraps can be read at a future time.
 
+[See the scrapbook documentation](https://nteract-scrapbook.readthedocs.io/) for
+more information on how to use scrapbook.
+
 ## Use Cases
 
 Notebook users may wish to record data produced during a notebook's execution.
