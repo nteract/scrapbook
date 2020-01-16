@@ -96,6 +96,31 @@ This can read transform scraps into a json object representing their
 contents or location and load those strings back into the original data
 objects.
 
+For example, here is the code for a custom encoder that can save
+`Altair charts <https://altair-viz.github.io/user_guide/generated/toplevel/altair.Chart.html>`_
+by converting the chart to a dictionary as a part of the encoding process.
+
+.. code:: python
+
+    from scrapbook.encoders import registry as encoder_registry
+    import altair as alt
+
+    class AltairEncoder(object):
+        def encode(self, scrap):
+            # Here we assume the input to `sb.glue` is an Altair chart.
+            scrap = scrap._replace(data=scrap.data.to_dict())
+            return scrap
+
+        def decode(self, scrap):
+            scrap = scrap._replace(data=alt.Chart.from_dict(scrap.data))
+            return scrap
+
+    # Register the encoder so that scrapbook can use it
+    encoder_registry.register("altair", AltairEncoder())
+    # Now we can use this encoder with `glue`
+    sb.glue('my_altair_chart', chart, 'altair')
+
+
 ``text``
 ~~~~~~~~
 
