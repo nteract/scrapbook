@@ -67,7 +67,15 @@ def glue(name, data, encoder=None, display=None):
 
     # TODO: Implement the cool stuff. Remote storage indicators?!? Maybe remote media type?!?
     if not encoder:
-        encoder = encoder_registry.determine_encoder_name(data)
+        try:
+            encoder = encoder_registry.determine_encoder_name(data)
+        except NotImplementedError:
+            if display is not None:
+                # Do not raise an exception if the scrap isn't encodable because
+                # the corresponding display object may be.
+                encoder = 'display'
+            else:
+                raise
 
     if display is None:
         display = encoder == "display"
