@@ -17,7 +17,7 @@ from .utils import kernel_required
 
 
 @kernel_required
-def glue(name, data, encoder=None, display=None):
+def glue(name, data, encoder=None, display=None, return_output=False):
     """
     Records a data value in the given notebook cell.
 
@@ -60,10 +60,15 @@ def glue(name, data, encoder=None, display=None):
         The name of the handler to use in persisting data in the notebook.
     display: any (optional)
         An indicator for persisting controlling displays for the named record.
+    return_output: bool (optional)
+        Whether to return the output content (default: False). If True, the data
+        is not stored in the output.
     """
     # Keep slow import lazy
     import IPython
     from IPython.display import display as ip_display
+
+    output = None
 
     # TODO: Implement the cool stuff. Remote storage indicators?!? Maybe remote media type?!?
     if not encoder:
@@ -85,7 +90,10 @@ def glue(name, data, encoder=None, display=None):
         ipy_data, metadata = _prepare_ipy_data_format(
             name, scrap_to_payload(encoder_registry.encode(Scrap(name, data, encoder))), encoder
         )
-        ip_display(ipy_data, metadata=metadata, raw=True)
+        if return_output:
+            output = ipy_data, metadata
+        else:
+            ip_display(ipy_data, metadata=metadata, raw=True)
 
     # Only display data that is marked for display
     if display:
@@ -96,7 +104,12 @@ def glue(name, data, encoder=None, display=None):
             display_kwargs = display
         raw_data, raw_metadata = IPython.core.formatters.format_display_data(data, **display_kwargs)
         data, metadata = _prepare_ipy_display_format(name, raw_data, raw_metadata)
-        ip_display(data, metadata=metadata, raw=True)
+        if return_output:
+            output = data, metadata
+        else:
+            ip_display(data, metadata=metadata, raw=True)
+
+    return output
 
 
 def _prepare_ipy_data_format(name, payload, encoder):
