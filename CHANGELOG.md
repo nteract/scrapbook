@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.4.1
+
+- Fixed primitives to be json encoded
+
 ## 0.4.0
 
 - Python 3 (3.5+) Only
