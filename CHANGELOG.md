@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.4.0
+
+- Python 3 (3.5+) Only
+- Direct pandas support available
+- Added fallback for only setting display=True but not encoder=display
+- Added some example docs and binder examples
+- Fixed encoder vs encoders naming issue
+
 ## 0.3.1
 
 - Adjusted python 2.7 sci-kit requirements
