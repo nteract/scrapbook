@@ -140,7 +140,7 @@ class JsonEncoder(object):
         return self.ENCODER_NAME
 
     def encodable(self, data):
-        return isinstance(data, (list, dict))
+        return isinstance(data, (list, dict, int, float, bool, str))
 
     def encode(self, scrap, **kwargs):
         if isinstance(scrap.data, six.string_types):
