@@ -311,7 +311,7 @@ class Notebook(object):
                 ip_display(data, metadata=metadata, raw=True)
 
 
-class Scrapbook(collections.MutableMapping):
+class Scrapbook(collections.abc.MutableMapping):
     """
     A collection of notebooks represented as a dictionary of notebooks
     """
