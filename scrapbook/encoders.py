@@ -7,7 +7,7 @@ Provides the encoders for various data types to be persistable
 import six
 import json
 import base64
-import collections
+import collections.abc
 import pandas as pd
 
 from io import BytesIO
@@ -18,7 +18,7 @@ from .scraps import scrap_to_payload
 from .exceptions import ScrapbookException, ScrapbookInvalidEncoder, ScrapbookMissingEncoder
 
 
-class DataEncoderRegistry(collections.MutableMapping):
+class DataEncoderRegistry(collections.abc.MutableMapping):
     def __init__(self):
         self._encoders = OrderedDict()
 
