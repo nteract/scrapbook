@@ -4,12 +4,12 @@
 
 <!---(binder links generated at https://mybinder.readthedocs.io/en/latest/howto/badges.html and compressed at https://tinyurl.com) -->
 
-[![Travis Build Status](https://travis-ci.org/nteract/scrapbook.svg?branch=master)](https://travis-ci.org/nteract/scrapbook)
-[![Azure Build Status](https://dev.azure.com/nteract/nteract/_apis/build/status/nteract.scrapbook?branchName=master)](https://dev.azure.com/nteract/nteract/_build/latest?definitionId=6&branchName=master)
-[![image](https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=master)](https://codecov.io/github/nteract/scrapbook=master)
+[![Travis Build Status](https://travis-ci.org/nteract/scrapbook.svg?branch=main)](https://travis-ci.org/nteract/scrapbook)
+[![Azure Build Status](https://dev.azure.com/nteract/nteract/_apis/build/status/nteract.scrapbook?branchName=main)](https://dev.azure.com/nteract/nteract/_build/latest?definitionId=6&branchName=main)
+[![image](https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=main)](https://codecov.io/github/nteract/scrapbook=main)
 [![Documentation Status](https://readthedocs.org/projects/nteract-scrapbook/badge/?version=latest)](https://nteract-scrapbook.readthedocs.io/en/latest/?badge=latest)
-[![badge](https://tinyurl.com/y3moqkmc)](https://mybinder.org/v2/gh/nteract/scrapbook/master?filepath=binder%2Freglue_highlight_dates.ipynb)
-[![badge](https://tinyurl.com/ybk8qa3j)](https://mybinder.org/v2/gh/nteract/scrapbook/master?filepath=binder%2FResultsDemo.ipynb)
+[![badge](https://tinyurl.com/y3moqkmc)](https://mybinder.org/v2/gh/nteract/scrapbook/main?filepath=binder%2Freglue_highlight_dates.ipynb)
+[![badge](https://tinyurl.com/ybk8qa3j)](https://mybinder.org/v2/gh/nteract/scrapbook/main?filepath=binder%2FResultsDemo.ipynb)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 THE **scrapbook** library records a notebook’s data values and generated visual

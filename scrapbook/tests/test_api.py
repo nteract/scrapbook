@@ -202,8 +202,11 @@ def test_glue_display_only(mock_display, name, obj, data, encoder, metadata, dis
 @mock.patch("IPython.display.display")
 @mock.patch('scrapbook.api.encoder_registry')
 def test_glue_display_encoder_fallback(
-        mock_registry, mock_display, name, obj, data, encoder, metadata, display):
-    mock_registry.determine_encoder_name.side_effect = mock.Mock(side_effect=NotImplementedError('N/A'))
+    mock_registry, mock_display, name, obj, data, encoder, metadata, display
+):
+    mock_registry.determine_encoder_name.side_effect = mock.Mock(
+        side_effect=NotImplementedError('N/A')
+    )
     glue(name, obj, encoder, display)
     mock_display.assert_called_once_with(data, metadata=metadata, raw=True)
 

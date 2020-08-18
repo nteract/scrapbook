@@ -234,17 +234,8 @@ def test_pandas_encode_and_decode(test_input):
 
 
 @pytest.mark.parametrize(
-    "test_input,exception_type",
+    ("test_input",),
     [
-        # Dicts can't convert
-        (
-            Scrap(
-                name="foo",
-                data=pd.DataFrame(data={"foo": pd.Series([{"foo": "bar"}], dtype='object')}),
-                encoder="pandas",
-            ),
-            pyarrow.lib.ArrowNotImplementedError,
-        ),
         # Sets can't convert
         (
             Scrap(
@@ -252,12 +243,11 @@ def test_pandas_encode_and_decode(test_input):
                 data=pd.DataFrame(data={"foo": pd.Series([{"foo", "bar"}], dtype='object')}),
                 encoder="pandas",
             ),
-            pyarrow.lib.ArrowInvalid,
         ),
     ],
 )
-def test_unsupported_arrow_conversions(test_input, exception_type):
-    with pytest.raises(exception_type):
+def test_unsupported_arrow_conversions(test_input):
+    with pytest.raises(pyarrow.lib.ArrowInvalid):
         PandasArrowDataframeEncoder().encode(test_input)
 
 

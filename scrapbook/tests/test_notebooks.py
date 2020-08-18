@@ -128,7 +128,7 @@ def test_scraps_collection_dataframe(notebook_result):
         ],
         columns=["name", "data", "encoder", "display"],
     )
-    assert_frame_equal(notebook_result.scraps.dataframe, expected_df, check_exact=True)
+    assert_frame_equal(notebook_result.scraps.dataframe, expected_df)
 
 
 def test_record_scraps_collection_dataframe(notebook_backwards_result):
@@ -143,7 +143,7 @@ def test_record_scraps_collection_dataframe(notebook_backwards_result):
         columns=["name", "data", "encoder", "display"],
     )
     print(notebook_backwards_result.scraps.dataframe)
-    assert_frame_equal(notebook_backwards_result.scraps.dataframe, expected_df, check_exact=True)
+    assert_frame_equal(notebook_backwards_result.scraps.dataframe, expected_df)
 
 
 @mock.patch("IPython.display.display")
@@ -268,11 +268,7 @@ def test_scrap_dataframe(notebook_result):
         columns=["name", "data", "encoder", "display", "filename"],
     )
     assert_frame_equal(
-        notebook_result.scrap_dataframe,
-        expected_df,
-        # Python 2.7 gets confused here with AnyDict / None sometimes
-        check_exact=True,
-        check_column_type=False,
+        notebook_result.scrap_dataframe, expected_df, check_column_type=False,
     )
 
 

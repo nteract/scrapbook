@@ -1,16 +1,16 @@
 Welcome to scrapbook
 ====================
 
-.. image:: https://travis-ci.org/nteract/scrapbook.svg?branch=master
+.. image:: https://travis-ci.org/nteract/scrapbook.svg?branch=main
    :target: https://travis-ci.org/nteract/scrapbook
-.. image:: https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=master
-   :target: https://codecov.io/github/nteract/scrapbook?branch=master
+.. image:: https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=main
+   :target: https://codecov.io/github/nteract/scrapbook?branch=main
 .. image:: https://readthedocs.org/projects/scrapbook/badge/?version=latest
    :target: http://nteract-scrapbook.readthedocs.io/en/latest/?badge=latest
 .. image:: https://tinyurl.com/y3moqkmc
-   :target: https://mybinder.org/v2/gh/nteract/scrapbook/master?filepath=binder%2Freglue_highlight_dates.ipynb
+   :target: https://mybinder.org/v2/gh/nteract/scrapbook/main?filepath=binder%2Freglue_highlight_dates.ipynb
 .. image:: https://tinyurl.com/ybk8qa3j
-   :target: https://mybinder.org/v2/gh/nteract/scrapbook/master?filepath=binder%2FResultsDemo.ipynb
+   :target: https://mybinder.org/v2/gh/nteract/scrapbook/main?filepath=binder%2FResultsDemo.ipynb
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/ambv/black
 

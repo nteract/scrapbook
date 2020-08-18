@@ -1,7 +1,6 @@
 recursive-include scrapbook *.py
 recursive-include scrapbook *.ipynb
 recursive-include scrapbook *.json
-recursive-include scrapbook *.yaml
 recursive-include scrapbook *.keep
 recursive-include scrapbook *.txt
 
@@ -20,6 +19,9 @@ include scrapbook/tests/fixtures/tiny.png
 
 include .coveragerc
 include .bumpversion.cfg
+
+exclude .travis.yaml
+exclude azure-pipelines.yml
 
 # Documentation
 graft docs
