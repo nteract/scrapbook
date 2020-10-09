@@ -396,9 +396,11 @@ sb.glue("hello", "world", "text")
 sb.glue("foo_json", {"foo": "bar", "baz": 1}, "json")
 ```
 
-### `arrow`
+### `pandas`
 
-Implementation Pending!
+```python
+sb.glue("pandas_df",pd.DataFrame({'col1': [1, 2], 'col2': [3, 4]}), "pandas")
+```
 
 ## papermill's deprecated `record` feature
 
