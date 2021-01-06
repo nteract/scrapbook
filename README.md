@@ -11,11 +11,14 @@
 [![badge](https://tinyurl.com/ybk8qa3j)](https://mybinder.org/v2/gh/nteract/scrapbook/main?filepath=binder%2FResultsDemo.ipynb)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
-THE **scrapbook** library records a notebook’s data values and generated visual
+The **scrapbook** library records a notebook’s data values and generated visual
 content as "scraps". Recorded scraps can be read at a future time.
 
 [See the scrapbook documentation](https://nteract-scrapbook.readthedocs.io/) for
 more information on how to use scrapbook.
+
+**WARNING:** This is the old package name `nteract-scrapbook` -- please install `scrapbook` in the
+future as no new releases are going out for this old package name.
 
 ## Use Cases
 

@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.4.2
+
+- Added warning about package name change
+
 ## 0.4.1
 
 - Fixed primitives to be json encoded
