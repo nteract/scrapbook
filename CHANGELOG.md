@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.5.0
+
+- New package name
+
 ## 0.4.2
 
 - Added warning about package name change

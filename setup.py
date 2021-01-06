@@ -50,7 +50,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="nteract-scrapbook",
+    name="scrapbook",
     version=version(),
     description="A library for recording and reading data in Jupyter and nteract Notebooks",
     author="nteract contributors",

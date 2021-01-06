@@ -9,7 +9,7 @@
 
 ```bash
 bumpversion patch
-git push && git push --tags
+git push upstream && git push upstream --tags
 ```
 
 ## Push to PyPi

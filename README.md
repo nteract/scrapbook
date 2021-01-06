@@ -17,9 +17,6 @@ content as "scraps". Recorded scraps can be read at a future time.
 [See the scrapbook documentation](https://nteract-scrapbook.readthedocs.io/) for
 more information on how to use scrapbook.
 
-**WARNING:** This is the old package name `nteract-scrapbook` -- please install `scrapbook` in the
-future as no new releases are going out for this old package name.
-
 ## Use Cases
 
 Notebook users may wish to record data produced during a notebook's execution.
@@ -43,20 +40,20 @@ date, Python 2 support will halt, and only 3.x versions will be maintained.
 Install using `pip`:
 
 ```{.sourceCode .bash}
-pip install nteract-scrapbook
+pip install scrapbook
 ```
 
 For installing optional IO dependencies, you can specify individual store bundles,
 like `s3` or `azure`:
 
 ```{.sourceCode .bash}
-pip install nteract-scrapbook[s3]
+pip install scrapbook[s3]
 ```
 
 or use `all`:
 
 ```{.sourceCode .bash}
-pip install nteract-scrapbook[all]
+pip install scrapbook[all]
 ```
 
 ---
