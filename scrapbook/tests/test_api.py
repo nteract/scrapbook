@@ -9,7 +9,7 @@ from IPython.display import Image
 
 from . import get_fixture_path
 from .. import utils
-from ..api import glue
+from ..api import glue, read_notebooks
 from ..schemas import GLUE_PAYLOAD_FMT
 
 
@@ -276,3 +276,15 @@ def test_glue_warning(kernel_mock):
     kernel_mock.return_value = False
     with pytest.warns(UserWarning):
         glue('foo', 'bar', 'text')
+
+
+@mock.patch("scrapbook.api.list_notebook_files")
+@mock.patch("scrapbook.api.read_notebook")
+def test_filter_filenames(mock_read_notebook, mock_list_notebook_files):
+    mock_list_notebook_files.return_value = ['test', 'an', 'oo']
+    _ = read_notebooks('fake_path')
+    assert mock_read_notebook.call_count == 3
+    mock_read_notebook.reset_mock()
+    _ = read_notebooks('fake_path', path_filter=lambda x: 'test' in x)
+    assert mock_read_notebook.call_count == 1
+    assert mock_read_notebook.assert_called_with('test')

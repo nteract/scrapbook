@@ -130,7 +130,7 @@ def read_notebook(path):
     return Notebook(path)
 
 
-def read_notebooks(path):
+def read_notebooks(path, path_filter=None):
     """
     Returns a Scrapbook including the notebooks read from the
     directory specified by `path`.
@@ -139,6 +139,9 @@ def read_notebooks(path):
     ----------
     path : str
         Path to directory containing notebook `.ipynb` files.
+    path_filter: Optional[Callable[str, bool]]
+        Func used to filter the notebook by its filename:
+        should return True if you want to read that notebook and False otherwise
 
     Returns
     -------
@@ -147,7 +150,7 @@ def read_notebooks(path):
 
     """
     scrapbook = Scrapbook()
-    for notebook_path in sorted(list_notebook_files(path)):
+    for notebook_path in sorted(filter(path_filter, list_notebook_files(path))):
         fn = os.path.splitext(os.path.basename(notebook_path))[0]
         scrapbook[fn] = read_notebook(notebook_path)
     return scrapbook
