@@ -287,4 +287,4 @@ def test_filter_filenames(mock_read_notebook, mock_list_notebook_files):
     mock_read_notebook.reset_mock()
     _ = read_notebooks('fake_path', path_filter=lambda x: 'test' in x)
     assert mock_read_notebook.call_count == 1
-    assert mock_read_notebook.assert_called_with('test')
+    mock_read_notebook.assert_called_with('test')
