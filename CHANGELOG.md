@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+
+- Remove Python 3.5 support
+
 ## 0.5.0
 
 - New package name
