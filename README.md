@@ -4,7 +4,6 @@
 
 <!---(binder links generated at https://mybinder.readthedocs.io/en/latest/howto/badges.html and compressed at https://tinyurl.com) -->
 
-[![Travis Build Status](https://travis-ci.org/nteract/scrapbook.svg?branch=main)](https://travis-ci.org/nteract/scrapbook)
 [![image](https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=main)](https://codecov.io/github/nteract/scrapbook=main)
 [![Documentation Status](https://readthedocs.org/projects/nteract-scrapbook/badge/?version=latest)](https://nteract-scrapbook.readthedocs.io/en/latest/?badge=latest)
 [![badge](https://tinyurl.com/y3moqkmc)](https://mybinder.org/v2/gh/nteract/scrapbook/main?filepath=binder%2Freglue_highlight_dates.ipynb)
@@ -31,7 +30,7 @@ Namely, scrapbook lets you:
 
 ## Python Version Support
 
-This library's long term support target is Python 3.5+. It currently also
+This library's long term support target is Python 3.6+. It currently also
 supports Python 2.7 until Python 2 reaches end-of-life in 2020. After this
 date, Python 2 support will halt, and only 3.x versions will be maintained.
 
