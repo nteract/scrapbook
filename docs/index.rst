@@ -24,9 +24,7 @@ This library replaces `papermill <https://papermill.readthedocs.io>`_'s existing
 Python Version Support
 ----------------------
 
-This library will support python 2.7 and 3.5+ until end-of-life for
-python 2 in 2020. After which python 2 support will halt and only 3.x
-version will be maintained.
+This library supports python 3.6+.
 
 Use Case
 --------
