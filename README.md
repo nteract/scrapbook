@@ -3,7 +3,7 @@
 # scrapbook
 
 <!---(binder links generated at https://mybinder.readthedocs.io/en/latest/howto/badges.html and compressed at https://tinyurl.com) -->
-
+[![CI](https://github.com/nteract/scrapbook/actions/workflows/ci.yml/badge.svg)](https://github.com/nteract/scrapbook/actions/workflows/ci.yml)
 [![image](https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=main)](https://codecov.io/github/nteract/scrapbook=main)
 [![Documentation Status](https://readthedocs.org/projects/nteract-scrapbook/badge/?version=latest)](https://nteract-scrapbook.readthedocs.io/en/latest/?badge=latest)
 [![badge](https://tinyurl.com/y3moqkmc)](https://mybinder.org/v2/gh/nteract/scrapbook/main?filepath=binder%2Freglue_highlight_dates.ipynb)
