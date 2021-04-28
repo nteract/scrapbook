@@ -31,3 +31,4 @@ graft scripts
 
 # Build files
 exclude .github
+exclude .readthedocs.yaml
