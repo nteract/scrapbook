@@ -90,7 +90,6 @@ html_theme_options = {
     "github_button": True,
     "github_user": "nteract",
     "github_repo": "scrapbook",
-    "travis_button": False,
     "codecov_button": False,
 }
 

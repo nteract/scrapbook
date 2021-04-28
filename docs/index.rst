@@ -1,8 +1,8 @@
 Welcome to scrapbook
 ====================
 
-.. image:: https://travis-ci.org/nteract/scrapbook.svg?branch=main
-   :target: https://travis-ci.org/nteract/scrapbook
+.. image:: https://github.com/nteract/scrapbook/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/nteract/scrapbook/actions/workflows/ci.yml
 .. image:: https://codecov.io/github/nteract/scrapbook/coverage.svg?branch=main
    :target: https://codecov.io/github/nteract/scrapbook?branch=main
 .. image:: https://readthedocs.org/projects/scrapbook/badge/?version=latest
