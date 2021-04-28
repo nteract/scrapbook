@@ -7,4 +7,3 @@ pytest==6.2.3
 mock==4.0.3
 moto==2.0.5
 sphinx-copybutton==0.3.1
-

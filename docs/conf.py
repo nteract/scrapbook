@@ -102,6 +102,8 @@ htmlhelp_basename = "scrapbookdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
+myst_update_mathjax = False
+
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
